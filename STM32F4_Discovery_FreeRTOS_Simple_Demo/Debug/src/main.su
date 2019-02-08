@@ -1,0 +1,11 @@
+core_cm4.h:1037:22:NVIC_SetPriorityGrouping	24	static
+main.c:213:5:main	24	static
+main.c:294:13:vExampleTimerCallback	16	static
+main.c:303:13:prvQueueSendTask	24	static
+main.c:328:13:prvQueueReceiveTask	24	static
+main.c:350:13:prvEventSemaphoreTask	16	static
+main.c:363:6:vApplicationTickHook	16	static
+main.c:400:6:vApplicationMallocFailedHook	4	static
+main.c:414:6:vApplicationStackOverflowHook	16	static
+main.c:428:6:vApplicationIdleHook	16	static
+main.c:450:13:prvSetupHardware	8	static
