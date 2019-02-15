@@ -167,18 +167,11 @@ functionality.
  */
 static void prvSetupHardware( void );
 
-/*
- * The queue send and receive tasks as described in the comments at the top of
- * this file.
- */
-static void Manager_Task( void *pvParameters );
-static void Blue_LED_Controller_Task( void *pvParameters );
-static void Green_LED_Controller_Task( void *pvParameters );
-static void Red_LED_Controller_Task( void *pvParameters );
-static void Amber_LED_Controller_Task( void *pvParameters );
+void GPIOTestTask( void* pvParameters);
+void ADCTestTask( void* pvParameters);
 
-xQueueHandle xQueue_handle = 0;
-
+void MyGPIOInit(void);
+void MyADCInit(void);
 
 /*-----------------------------------------------------------*/
 
@@ -191,24 +184,16 @@ int main(void)
 	STM_EVAL_LEDInit(red_led);
 	STM_EVAL_LEDInit(blue_led);
 
+	// Initialize necessary GPIO and ADC pins
+	MyGPIOInit();
+	MyADCInit();
+
 	/* Configure the system ready to run the demo.  The clock configuration
 	can be done here if it was not done before main() was called. */
 	prvSetupHardware();
 
-
-	/* Create the queue used by the queue send and queue receive tasks.
-	http://www.freertos.org/a00116.html */
-	xQueue_handle = xQueueCreate( 	mainQUEUE_LENGTH,		/* The number of items the queue can hold. */
-							sizeof( uint32_t ) );	/* The size of each item the queue holds. */
-
-	/* Add to the registry, for the benefit of kernel aware debugging. */
-	vQueueAddToRegistry( xQueue_handle, "MainQueue" );
-
-	xTaskCreate( Manager_Task, "Manager", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
-	xTaskCreate( Blue_LED_Controller_Task, "Blue_LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-	xTaskCreate( Red_LED_Controller_Task, "Red_LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-	xTaskCreate( Green_LED_Controller_Task, "Green_LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-	xTaskCreate( Amber_LED_Controller_Task, "Amber_LED", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	xTaskCreate( GPIOTestTask, "GPIOTest", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	xTaskCreate( ADCTestTask, "ADCTest", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
 
 	/* Start the tasks and timer running. */
 	vTaskStartScheduler();
@@ -219,147 +204,89 @@ int main(void)
 
 /*-----------------------------------------------------------*/
 
-static void Manager_Task( void *pvParameters )
+void GPIOTestTask( void* pvParameters)
 {
-	uint32_t tx_data = amber;
-
-
 	while(1)
 	{
+		printf("Light On\n");
+		GPIO_SetBits(GPIOC, GPIO_Pin_7);
+		vTaskDelay(1000);
+		printf("Light Off\n");
+		GPIO_ResetBits(GPIOC, GPIO_Pin_7);
+		vTaskDelay(1000);
+	}
+}
 
-		if(tx_data == amber)
-			STM_EVAL_LEDOn(amber_led);
-		if(tx_data == green)
-			STM_EVAL_LEDOn(green_led);
-		if(tx_data == red)
-			STM_EVAL_LEDOn(red_led);
-		if(tx_data == blue)
-			STM_EVAL_LEDOn(blue_led);
+void ADCTestTask( void* pvParameters)
+{
+	uint16_t adc_conv_val;
+	while(1)
+	{
+		// start conversion
+		ADC_SoftwareStartConv(ADC1);
+		// wait for end of conversion
+		while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));
 
-		if( xQueueSend(xQueue_handle,&tx_data,1000))
-		{
-			printf("LED %d ON!\n", tx_data);
-			if(++tx_data == 4)
-				tx_data = 0;
-			vTaskDelay(1000);
-		}
-		else
-		{
-			printf("Manager Failed!\n");
-		}
+		// retrieve conversion val
+		adc_conv_val = ADC_GetConversionValue(ADC1);
+		printf("ADC Conversion Value: %d\n", adc_conv_val);
+		vTaskDelay(100);
 	}
 }
 
 /*-----------------------------------------------------------*/
 
-static void Blue_LED_Controller_Task( void *pvParameters )
-{
-	uint32_t rx_data;
-	while(1)
-	{
-		if(xQueueReceive(xQueue_handle, &rx_data, 1000))
-		{
-			if(rx_data == blue)
-			{
-				vTaskDelay(250);
-				STM_EVAL_LEDOff(blue_led);
-				printf("Blue Off.\n");
-			}
-			else
-			{
-				if( xQueueSend(xQueue_handle,&rx_data,500))
-					{
-						printf("Blue GRP (%d).\n", rx_data); // Got Wrong Package
-						vTaskDelay(500);
-					}
-			}
-		}
-	}
-}
+
+/*-----------------------------------------------------------*/
+
 
 
 /*-----------------------------------------------------------*/
 
-static void Green_LED_Controller_Task( void *pvParameters )
-{
-	uint32_t rx_data;
-	while(1)
-	{
-		if(xQueueReceive(xQueue_handle, &rx_data, 500))
-		{
-			if(rx_data == green)
-			{
-				vTaskDelay(250);
-				STM_EVAL_LEDOff(green_led);
-				printf("Green Off.\n");
-			}
-			else
-			{
-				if( xQueueSend(xQueue_handle,&rx_data,1000))
-					{
-						printf("Green GRP (%d).\n", rx_data); // Got Wrong Package
-						vTaskDelay(500);
-					}
-			}
-		}
-	}
-}
 
-/*-----------------------------------------------------------*/
-
-static void Red_LED_Controller_Task( void *pvParameters )
-{
-	uint32_t rx_data;
-	while(1)
-	{
-		if(xQueueReceive(xQueue_handle, &rx_data, 500))
-		{
-			if(rx_data == red)
-			{
-				vTaskDelay(250);
-				STM_EVAL_LEDOff(red_led);
-				printf("Red off.\n");
-			}
-			else
-			{
-				if( xQueueSend(xQueue_handle,&rx_data,1000))
-					{
-						printf("Red GRP (%d).\n", rx_data); // Got Wrong Package
-						vTaskDelay(500);
-					}
-			}
-		}
-	}
-}
 
 
 /*-----------------------------------------------------------*/
 
-static void Amber_LED_Controller_Task( void *pvParameters )
+void MyGPIOInit(void)
 {
-	uint32_t rx_data;
-	while(1)
-	{
-		if(xQueueReceive(xQueue_handle, &rx_data, 500))
-		{
-			if(rx_data == amber)
-			{
-				vTaskDelay(250);
-				STM_EVAL_LEDOff(amber_led);
-				printf("Amber Off.\n");
-			}
-			else
-			{
-				if( xQueueSend(xQueue_handle,&rx_data,1000))
-					{
-						printf("Amber GRP (%d).\n", rx_data); // Got Wrong Package
-						vTaskDelay(500);
-					}
-			}
-		}
-	}
+	//enable clocks for GPIOC
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+
+	GPIO_InitTypeDef gpioc;
+	gpioc.GPIO_Mode = GPIO_Mode_OUT;
+	gpioc.GPIO_OType = GPIO_OType_PP;
+	gpioc.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_9;
+	gpioc.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	gpioc.GPIO_Speed = GPIO_Speed_2MHz;
+	GPIO_Init(GPIOC, &gpioc);
+
+	// enable clocks for ADC, GPIOA
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
 }
 
+void MyADCInit()
+{
+	GPIO_InitTypeDef gpioa;
+	gpioa.GPIO_Mode = GPIO_Mode_AN;
+	gpioa.GPIO_Pin = GPIO_Pin_1;
+	gpioa.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(GPIOA, &gpioa);
+
+	ADC_InitTypeDef adc1_init;
+	adc1_init.ADC_Resolution = ADC_Resolution_12b;
+	adc1_init.ADC_ScanConvMode = DISABLE;
+	adc1_init.ADC_DataAlign = ADC_DataAlign_Right;
+	adc1_init.ADC_ExternalTrigConv = DISABLE;
+	adc1_init.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
+	adc1_init.ADC_NbrOfConversion = 1;
+	ADC_Init(ADC1, &adc1_init);
+	ADC_Cmd(ADC1, ENABLE);
+
+	// ADC regular channel config on ADC1 Channel 1 (PA1)
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_1, 1, ADC_SampleTime_84Cycles);
+}
 
 /*-----------------------------------------------------------*/
 
