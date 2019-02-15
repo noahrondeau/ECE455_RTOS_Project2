@@ -146,30 +146,34 @@ functionality.
 #include "../FreeRTOS_Source/include/task.h"
 #include "../FreeRTOS_Source/include/timers.h"
 
+/* Definitions */
 
+// POTENTIOMETER HOOKUP DEFS
+#define POT_ADC					ADC1
+#define POT_ADC_CHANNEL			ADC_Channel_1
+#define POT_ADC_CLOCK_SOURCE	RCC_APB2Periph_ADC1
+#define POT_GPIO_CLOCK_SOURCE	RCC_AHB1Periph_GPIOA
+#define POT_PORT				GPIOA
+#define POT_PIN					GPIO_Pin_1
 
-/*-----------------------------------------------------------*/
-#define mainQUEUE_LENGTH 100
+// SHIFT REGISTER HOOKUP DEFS
+#define SHIFT_REG_PORT			GPIOC
+#define SHIFT_REG_CLOCK_SOURCE	RCC_AHB1Periph_GPIOC
+#define SHIFT_REG_PIN			GPIO_Pin_7
+#define SHIFT_REG_CLK			GPIO_Pin_9
 
-#define amber  	0
-#define green  	1
-#define red  	2
-#define blue  	3
-
-#define amber_led	LED3
-#define green_led	LED4
-#define red_led		LED5
-#define blue_led	LED6
-
+/* FreeRTOS declarations */
 /*
  * TODO: Implement this function for any hardware specific clock configuration
  * that was not already performed before main() was called.
  */
 static void prvSetupHardware( void );
 
+
+/* Private Declarations */
+
 void GPIOTestTask( void* pvParameters);
 void ADCTestTask( void* pvParameters);
-
 void MyGPIOInit(void);
 void MyADCInit(void);
 
@@ -177,19 +181,10 @@ void MyADCInit(void);
 
 int main(void)
 {
-
-	/* Initialize LEDs */
-	STM_EVAL_LEDInit(amber_led);
-	STM_EVAL_LEDInit(green_led);
-	STM_EVAL_LEDInit(red_led);
-	STM_EVAL_LEDInit(blue_led);
-
 	// Initialize necessary GPIO and ADC pins
 	MyGPIOInit();
 	MyADCInit();
 
-	/* Configure the system ready to run the demo.  The clock configuration
-	can be done here if it was not done before main() was called. */
 	prvSetupHardware();
 
 	xTaskCreate( GPIOTestTask, "GPIOTest", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
@@ -209,10 +204,10 @@ void GPIOTestTask( void* pvParameters)
 	while(1)
 	{
 		printf("Light On\n");
-		GPIO_SetBits(GPIOC, GPIO_Pin_7);
+		GPIO_SetBits(SHIFT_REG_PORT, SHIFT_REG_PIN);
 		vTaskDelay(1000);
 		printf("Light Off\n");
-		GPIO_ResetBits(GPIOC, GPIO_Pin_7);
+		GPIO_ResetBits(SHIFT_REG_PORT, SHIFT_REG_PIN);
 		vTaskDelay(1000);
 	}
 }
@@ -223,12 +218,12 @@ void ADCTestTask( void* pvParameters)
 	while(1)
 	{
 		// start conversion
-		ADC_SoftwareStartConv(ADC1);
+		ADC_SoftwareStartConv(POT_ADC);
 		// wait for end of conversion
-		while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));
+		while(!ADC_GetFlagStatus(POT_ADC, ADC_FLAG_EOC));
 
 		// retrieve conversion val
-		adc_conv_val = ADC_GetConversionValue(ADC1);
+		adc_conv_val = ADC_GetConversionValue(POT_ADC);
 		printf("ADC Conversion Value: %d\n", adc_conv_val);
 		vTaskDelay(100);
 	}
@@ -250,42 +245,45 @@ void ADCTestTask( void* pvParameters)
 
 void MyGPIOInit(void)
 {
-	//enable clocks for GPIOC
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+	//enable clocks for Shift register gpio port
+	RCC_AHB1PeriphClockCmd(SHIFT_REG_CLOCK_SOURCE, ENABLE);
 
-	GPIO_InitTypeDef gpioc;
-	gpioc.GPIO_Mode = GPIO_Mode_OUT;
-	gpioc.GPIO_OType = GPIO_OType_PP;
-	gpioc.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_9;
-	gpioc.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	gpioc.GPIO_Speed = GPIO_Speed_2MHz;
-	GPIO_Init(GPIOC, &gpioc);
+	GPIO_InitTypeDef init;
+	init.GPIO_Mode = GPIO_Mode_OUT;
+	init.GPIO_OType = GPIO_OType_PP;
+	init.GPIO_Pin =  SHIFT_REG_PIN | SHIFT_REG_CLK;
+	init.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	init.GPIO_Speed = GPIO_Speed_2MHz;
+	GPIO_Init(SHIFT_REG_PORT, &init);
 
-	// enable clocks for ADC, GPIOA
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+
 }
 
 void MyADCInit()
 {
-	GPIO_InitTypeDef gpioa;
-	gpioa.GPIO_Mode = GPIO_Mode_AN;
-	gpioa.GPIO_Pin = GPIO_Pin_1;
-	gpioa.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOA, &gpioa);
 
-	ADC_InitTypeDef adc1_init;
-	adc1_init.ADC_Resolution = ADC_Resolution_12b;
-	adc1_init.ADC_ScanConvMode = DISABLE;
-	adc1_init.ADC_DataAlign = ADC_DataAlign_Right;
-	adc1_init.ADC_ExternalTrigConv = DISABLE;
-	adc1_init.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
-	adc1_init.ADC_NbrOfConversion = 1;
-	ADC_Init(ADC1, &adc1_init);
-	ADC_Cmd(ADC1, ENABLE);
+	// enable clocks for ADC, GPIO
+	RCC_AHB1PeriphClockCmd(POT_GPIO_CLOCK_SOURCE, ENABLE);
+	RCC_APB2PeriphClockCmd(POT_ADC_CLOCK_SOURCE, ENABLE);
 
-	// ADC regular channel config on ADC1 Channel 1 (PA1)
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_1, 1, ADC_SampleTime_84Cycles);
+	GPIO_InitTypeDef gpio_init;
+	gpio_init.GPIO_Mode = GPIO_Mode_AN;
+	gpio_init.GPIO_Pin = GPIO_Pin_1;
+	gpio_init.GPIO_PuPd = GPIO_PuPd_NOPULL;
+	GPIO_Init(POT_PORT, &gpio_init);
+
+	ADC_InitTypeDef adc_init;
+	adc_init.ADC_Resolution = ADC_Resolution_12b;
+	adc_init.ADC_ScanConvMode = DISABLE;
+	adc_init.ADC_DataAlign = ADC_DataAlign_Right;
+	adc_init.ADC_ExternalTrigConv = DISABLE;
+	adc_init.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
+	adc_init.ADC_NbrOfConversion = 1;
+	ADC_Init(POT_ADC, &adc_init);
+	ADC_Cmd(POT_ADC, ENABLE);
+
+	// ADC regular channel config
+	ADC_RegularChannelConfig(POT_ADC, POT_ADC_CHANNEL, 1, ADC_SampleTime_84Cycles);
 }
 
 /*-----------------------------------------------------------*/
