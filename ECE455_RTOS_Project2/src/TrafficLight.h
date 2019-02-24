@@ -7,8 +7,20 @@
 
 #ifndef TRAFFICLIGHT_H_
 #define TRAFFICLIGHT_H_
-//Traffic Light Variables
 
+//DEFINES
+#define bool int
+#define TRUE 1
+#define FALSE 0
+
+//INCLUDES
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include "FreeRTOS.h"
+
+
+//Traffic Light Variables
 typedef enum trafficLightState
 {
 	Red,
@@ -22,6 +34,7 @@ typedef volatile struct trafficLight
 	trafficLightState nextState;
 	int baseDelay;
 	int lightDelay;
+	bool init;
 
 }trafficLight;
 
