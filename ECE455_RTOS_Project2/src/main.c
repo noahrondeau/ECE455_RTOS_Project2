@@ -146,6 +146,9 @@ functionality.
 #include "../FreeRTOS_Source/include/task.h"
 #include "../FreeRTOS_Source/include/timers.h"
 
+/*User includes*/
+#include "TrafficLight.h"
+
 /* Definitions */
 
 // POTENTIOMETER HOOKUP DEFS
@@ -161,6 +164,7 @@ functionality.
 #define SHIFT_REG_CLOCK_SOURCE	RCC_AHB1Periph_GPIOC
 #define SHIFT_REG_PIN			GPIO_Pin_7
 #define SHIFT_REG_CLK			GPIO_Pin_9
+
 
 /* FreeRTOS declarations */
 /*
@@ -230,7 +234,6 @@ void ADCTestTask( void* pvParameters)
 }
 
 /*-----------------------------------------------------------*/
-
 
 /*-----------------------------------------------------------*/
 
