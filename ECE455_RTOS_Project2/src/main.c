@@ -134,37 +134,14 @@ These two hook functions are provided as examples, but do not contain any
 functionality.
 */
 
-/* Standard includes. */
-#include <stdint.h>
-#include <stdio.h>
-#include "stm32f4_discovery.h"
-/* Kernel includes. */
-#include "stm32f4xx.h"
-#include "../FreeRTOS_Source/include/FreeRTOS.h"
-#include "../FreeRTOS_Source/include/queue.h"
-#include "../FreeRTOS_Source/include/semphr.h"
-#include "../FreeRTOS_Source/include/task.h"
-#include "../FreeRTOS_Source/include/timers.h"
+#include "config.h" // includes all necessary headers, defines, etc
+#include "ADC.h"
+#include "ShiftReg.h"
 
 /*User includes*/
 #include "TrafficLight.h"
 
 /* Definitions */
-
-// POTENTIOMETER HOOKUP DEFS
-#define POT_ADC					ADC1
-#define POT_ADC_CHANNEL			ADC_Channel_1
-#define POT_ADC_CLOCK_SOURCE	RCC_APB2Periph_ADC1
-#define POT_GPIO_CLOCK_SOURCE	RCC_AHB1Periph_GPIOA
-#define POT_PORT				GPIOA
-#define POT_PIN					GPIO_Pin_1
-
-// SHIFT REGISTER HOOKUP DEFS
-#define SHIFT_REG_PORT			GPIOC
-#define SHIFT_REG_CLOCK_SOURCE	RCC_AHB1Periph_GPIOC
-#define SHIFT_REG_PIN			GPIO_Pin_7
-#define SHIFT_REG_CLK			GPIO_Pin_9
-
 
 /* FreeRTOS declarations */
 /*
@@ -178,16 +155,16 @@ static void prvSetupHardware( void );
 
 void GPIOTestTask( void* pvParameters);
 void ADCTestTask( void* pvParameters);
-void MyGPIOInit(void);
-void MyADCInit(void);
+
+
 
 /*-----------------------------------------------------------*/
 
 int main(void)
 {
 	// Initialize necessary GPIO and ADC pins
-	MyGPIOInit();
-	MyADCInit();
+	ShiftReg_Init();
+	MyADC_Init();
 
 	prvSetupHardware();
 
@@ -246,48 +223,6 @@ void ADCTestTask( void* pvParameters)
 
 /*-----------------------------------------------------------*/
 
-void MyGPIOInit(void)
-{
-	//enable clocks for Shift register gpio port
-	RCC_AHB1PeriphClockCmd(SHIFT_REG_CLOCK_SOURCE, ENABLE);
-
-	GPIO_InitTypeDef init;
-	init.GPIO_Mode = GPIO_Mode_OUT;
-	init.GPIO_OType = GPIO_OType_PP;
-	init.GPIO_Pin =  SHIFT_REG_PIN | SHIFT_REG_CLK;
-	init.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	init.GPIO_Speed = GPIO_Speed_2MHz;
-	GPIO_Init(SHIFT_REG_PORT, &init);
-
-
-}
-
-void MyADCInit()
-{
-
-	// enable clocks for ADC, GPIO
-	RCC_AHB1PeriphClockCmd(POT_GPIO_CLOCK_SOURCE, ENABLE);
-	RCC_APB2PeriphClockCmd(POT_ADC_CLOCK_SOURCE, ENABLE);
-
-	GPIO_InitTypeDef gpio_init;
-	gpio_init.GPIO_Mode = GPIO_Mode_AN;
-	gpio_init.GPIO_Pin = GPIO_Pin_1;
-	gpio_init.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(POT_PORT, &gpio_init);
-
-	ADC_InitTypeDef adc_init;
-	adc_init.ADC_Resolution = ADC_Resolution_12b;
-	adc_init.ADC_ScanConvMode = DISABLE;
-	adc_init.ADC_DataAlign = ADC_DataAlign_Right;
-	adc_init.ADC_ExternalTrigConv = DISABLE;
-	adc_init.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
-	adc_init.ADC_NbrOfConversion = 1;
-	ADC_Init(POT_ADC, &adc_init);
-	ADC_Cmd(POT_ADC, ENABLE);
-
-	// ADC regular channel config
-	ADC_RegularChannelConfig(POT_ADC, POT_ADC_CHANNEL, 1, ADC_SampleTime_84Cycles);
-}
 
 /*-----------------------------------------------------------*/
 
