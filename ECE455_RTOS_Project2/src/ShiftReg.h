@@ -12,4 +12,15 @@
 
 void ShiftReg_Init(void);
 
+void ShiftReg_Clear(void);
+
+void ShiftReg_ClkRise(void);
+
+void ShiftReg_ClkFall(void);
+
+// @param val: only the LSB gets shifted on
+void ShiftReg_ShiftBitOnto(uint32_t val);
+
+void ShiftReg_Update(uint32_t seq);
+
 #endif /* SHIFTREG_H_ */
