@@ -12,9 +12,6 @@
 #include "TrafficLight.h"
 
 extern TrafficLight_t trafficLight;
-extern uint32_t oncomingTrafficBitField;
-extern uint32_t intersectionTrafficBitField;
-extern uint32_t outgoingTrafficBitField;
 extern SemaphoreHandle_t xTrafficMutex;
 
 void vDisplayTask( void* pvParameters );

@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <time.h>
 #include "stm32f4_discovery.h"
 /* Kernel includes. */
 #include "stm32f4xx.h"
@@ -21,6 +22,7 @@
 #include "../FreeRTOS_Source/include/semphr.h"
 #include "../FreeRTOS_Source/include/task.h"
 #include "../FreeRTOS_Source/include/timers.h"
+#include "../FreeRTOS_Source/include/event_groups.h"
 
 
 // SHIFT REGISTER HOOKUP DEFS
@@ -52,5 +54,6 @@ SemaphoreHandle_t xLightMutex;
 SemaphoreHandle_t xTrafficMutex;
 SemaphoreHandle_t xFlowMutex;
 TaskHandle_t DisplayTaskHandle;
+EventGroupHandle_t xEvent;
 
 #endif /* CONFIG_H_ */
