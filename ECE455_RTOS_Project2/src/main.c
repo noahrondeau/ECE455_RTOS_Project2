@@ -146,9 +146,11 @@ uint32_t oncomingTrafficBitField = 0;
 uint32_t intersectionTrafficBitField = 0;
 uint32_t outgoingTrafficBitField = 0;
 TrafficLight_t trafficLight;
+int flowRate = 0;
 
 SemaphoreHandle_t xLightMutex;
 SemaphoreHandle_t xTrafficMutex;
+SemaphoreHandle_t xFlowMutex;
 
 /* FreeRTOS declarations */
 /*
@@ -160,7 +162,7 @@ static void prvSetupHardware( void );
 
 /* Private Declarations */
 
-void ShiftRegTestTask( void* pvParameters);
+void vMockTask( void* pvParameters);
 
 
 
@@ -173,13 +175,15 @@ int main(void)
 	MyADC_Init();
 	prvSetupHardware();
 
-	TrafficLightInit(&trafficLight);
+	vTrafficLightInit(&trafficLight);
 
 	xTrafficMutex 	= xSemaphoreCreateMutex();
 	xLightMutex 	= xSemaphoreCreateMutex();
+	xFlowMutex		= xSemaphoreCreateMutex();
 
-	xTaskCreate( ShiftRegTestTask, "ShiftTest", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+	xTaskCreate( vMockTask, "MockTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
 	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	xTaskCreate( vTrafficLightControlTask, "TafficLightControlTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 
 	/* Start the tasks and timer running. */
 	vTaskStartScheduler();
@@ -190,23 +194,25 @@ int main(void)
 
 /*-----------------------------------------------------------*/
 
-void ShiftRegTestTask( void* pvParameters)
+void vMockTask( void* pvParameters)
 {
 
 	while(1)
-	{
+	{/*
 		if (xSemaphoreTake(xTrafficMutex, (TickType_t)100) == pdTRUE)
 		{
 			TrafficLightState_t* lightState = &(trafficLight.currentState);
-
-			*lightState = 	(*lightState == Red)		? Green :
-							((*lightState == Green)	? Yellow: Red);
 
 			oncomingTrafficBitField = (oncomingTrafficBitField + 1) % 0xFF;
 			intersectionTrafficBitField = (intersectionTrafficBitField + 1) % 0b1000;
 			outgoingTrafficBitField = (outgoingTrafficBitField + 1 ) % 0xFF;
 
 			xSemaphoreGive( xTrafficMutex );
+		}*/
+
+		if (xSemaphoreTake(xFlowMutex, (TickType_t)100) == pdTRUE )
+		{
+			flowRate = rand() % 2;
 		}
 
 		vTaskDelay(250);

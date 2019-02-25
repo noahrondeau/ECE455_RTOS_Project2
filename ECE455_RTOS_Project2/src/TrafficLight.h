@@ -8,12 +8,6 @@
 #ifndef TRAFFICLIGHT_H_
 #define TRAFFICLIGHT_H_
 
-//DEFINES
-/*
-#define bool int
-#define TRUE 1
-#define FALSE 0*/
-
 //INCLUDES
 #include "config.h"
 
@@ -38,10 +32,12 @@ typedef volatile struct TrafficLight
 
 extern TrafficLight_t trafficLight;
 extern SemaphoreHandle_t xLightMutex;
+extern SemaphoreHandle_t xFlowMutex;
+extern int flowRate;
 
 //Function Prototypes
-void TrafficLightControlTask( void* pvParameters);
-void TrafficLightInit(TrafficLight_t* trafficLight);
+void vTrafficLightControlTask( void* pvParameters);
+void vTrafficLightInit(TrafficLight_t* trafficLight);
 
 
 #endif /* TRAFFICLIGHT_H_ */
