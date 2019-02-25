@@ -137,11 +137,18 @@ functionality.
 #include "config.h" // includes all necessary headers, defines, etc
 #include "ADC.h"
 #include "ShiftReg.h"
-
-/*User includes*/
+#include "DisplayTask.h"
 #include "TrafficLight.h"
 
 /* Definitions */
+
+uint32_t oncomingTrafficBitField = 0;
+uint32_t intersectionTrafficBitField = 0;
+uint32_t outgoingTrafficBitField = 0;
+TrafficLight_t trafficLight;
+
+SemaphoreHandle_t xLightMutex;
+SemaphoreHandle_t xTrafficMutex;
 
 /* FreeRTOS declarations */
 /*
@@ -153,8 +160,7 @@ static void prvSetupHardware( void );
 
 /* Private Declarations */
 
-void GPIOTestTask( void* pvParameters);
-void ADCTestTask( void* pvParameters);
+void ShiftRegTestTask( void* pvParameters);
 
 
 
@@ -165,11 +171,13 @@ int main(void)
 	// Initialize necessary GPIO and ADC pins
 	ShiftReg_Init();
 	MyADC_Init();
-
 	prvSetupHardware();
 
-	xTaskCreate( GPIOTestTask, "GPIOTest", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-	xTaskCreate( ADCTestTask, "ADCTest", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+	TrafficLightInit(&trafficLight);
+
+	xTrafficMutex = xSemaphoreCreateMutex();
+	xTaskCreate( ShiftRegTestTask, "ShiftTest", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 
 	/* Start the tasks and timer running. */
 	vTaskStartScheduler();
@@ -180,33 +188,26 @@ int main(void)
 
 /*-----------------------------------------------------------*/
 
-void GPIOTestTask( void* pvParameters)
+void ShiftRegTestTask( void* pvParameters)
 {
+
 	while(1)
 	{
-		printf("Light On\n");
-		GPIO_SetBits(SHIFT_REG_PORT, SHIFT_REG_PIN);
-		vTaskDelay(1000);
-		printf("Light Off\n");
-		GPIO_ResetBits(SHIFT_REG_PORT, SHIFT_REG_PIN);
-		vTaskDelay(1000);
-	}
-}
+		if (xSemaphoreTake(xTrafficMutex, (TickType_t)100) == pdTRUE)
+		{
+			TrafficLightState_t* lightState = &(trafficLight.currentState);
 
-void ADCTestTask( void* pvParameters)
-{
-	uint16_t adc_conv_val;
-	while(1)
-	{
-		// start conversion
-		ADC_SoftwareStartConv(POT_ADC);
-		// wait for end of conversion
-		while(!ADC_GetFlagStatus(POT_ADC, ADC_FLAG_EOC));
+			*lightState = 	(*lightState == Red)		? Green :
+							((*lightState == Green)	? Yellow: Red);
 
-		// retrieve conversion val
-		adc_conv_val = ADC_GetConversionValue(POT_ADC);
-		printf("ADC Conversion Value: %d\n", adc_conv_val);
-		vTaskDelay(100);
+			oncomingTrafficBitField = (oncomingTrafficBitField + 1) % 0xFF;
+			intersectionTrafficBitField = (intersectionTrafficBitField + 1) % 0b1000;
+			outgoingTrafficBitField = (outgoingTrafficBitField + 1 ) % 0xFF;
+
+			xSemaphoreGive( xTrafficMutex );
+		}
+
+		vTaskDelay(250);
 	}
 }
 

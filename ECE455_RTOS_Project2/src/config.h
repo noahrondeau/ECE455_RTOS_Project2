@@ -11,6 +11,7 @@
 /* Standard includes. */
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 #include "stm32f4_discovery.h"
 /* Kernel includes. */
 #include "stm32f4xx.h"
@@ -24,8 +25,10 @@
 // SHIFT REGISTER HOOKUP DEFS
 #define SHIFT_REG_PORT			GPIOC
 #define SHIFT_REG_CLOCK_SOURCE	RCC_AHB1Periph_GPIOC
-#define SHIFT_REG_PIN			GPIO_Pin_7
-#define SHIFT_REG_CLK			GPIO_Pin_9
+#define SHIFT_REG_INPUT			GPIO_Pin_7
+#define SHIFT_REG_CLK			GPIO_Pin_8
+#define SHIFT_REG_CLEAR			GPIO_Pin_9
+#define NUM_LED					(22)
 
 // POTENTIOMETER HOOKUP DEFS
 #define POT_ADC					ADC1
@@ -34,5 +37,11 @@
 #define POT_GPIO_CLOCK_SOURCE	RCC_AHB1Periph_GPIOA
 #define POT_PORT				GPIOA
 #define POT_PIN					GPIO_Pin_1
+
+// Traffic length configs
+#define ONCOMING_SHIFT	(0)
+#define INTERSECT_SHIFT	(8)
+#define LIGHT_SHIFT		(11)
+#define OUTGOING_SHIFT	(14)
 
 #endif /* CONFIG_H_ */
