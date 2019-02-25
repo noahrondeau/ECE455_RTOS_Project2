@@ -11,11 +11,11 @@
 #include "config.h"
 #include "TrafficLight.h"
 
-extern trafficLightState lightState;
+extern TrafficLight_t trafficLight;
 extern uint32_t oncomingTrafficBitField;
 extern uint32_t intersectionTrafficBitField;
 extern uint32_t outgoingTrafficBitField;
-extern SemaphoreHandle_t xBitFieldMutex;
+extern SemaphoreHandle_t xTrafficMutex;
 
 void vDisplayTask( void* pvParameters );
 

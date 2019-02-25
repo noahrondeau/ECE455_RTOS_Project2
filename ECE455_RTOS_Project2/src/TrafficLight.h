@@ -9,43 +9,39 @@
 #define TRAFFICLIGHT_H_
 
 //DEFINES
+/*
 #define bool int
 #define TRUE 1
-#define FALSE 0
+#define FALSE 0*/
 
 //INCLUDES
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include "FreeRTOS.h"
-#include "semphr.h"
+#include "config.h"
 
 
 //Traffic Light Variables
-typedef enum trafficLightState
+typedef enum TrafficLightState
 {
 	Red		= 0b100,
 	Yellow	= 0b010,
 	Green	= 0b001,
-} trafficLightState;
+} TrafficLightState_t;
 
-typedef volatile struct trafficLight
+typedef volatile struct TrafficLight
 {
-	trafficLightState currentState;
-	trafficLightState nextState;
+	TrafficLightState_t currentState;
+	TrafficLightState_t nextState;
 	int baseDelay;
 	int lightDelay;
 	bool init;
 
-}trafficLight;
+}TrafficLight_t;
 
-//Globals
-trafficLight TrafficLight;
-xSemaphoreHandle xMutexTrafficLight = NULL;
+extern TrafficLight_t trafficLight;
+extern SemaphoreHandle_t xLightMutex;
 
 //Function Prototypes
 void TrafficLightControlTask( void* pvParameters);
-void TrafficLightInit(trafficLight* trafficLight);
+void TrafficLightInit(TrafficLight_t* trafficLight);
 
 
 #endif /* TRAFFICLIGHT_H_ */

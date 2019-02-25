@@ -142,12 +142,13 @@ functionality.
 
 /* Definitions */
 
-trafficLightState lightState = Red;
 uint32_t oncomingTrafficBitField = 0;
 uint32_t intersectionTrafficBitField = 0;
 uint32_t outgoingTrafficBitField = 0;
+TrafficLight_t trafficLight;
 
-SemaphoreHandle_t xBitFieldMutex;
+SemaphoreHandle_t xLightMutex;
+SemaphoreHandle_t xTrafficMutex;
 
 /* FreeRTOS declarations */
 /*
@@ -172,7 +173,9 @@ int main(void)
 	MyADC_Init();
 	prvSetupHardware();
 
-	xBitFieldMutex = xSemaphoreCreateMutex();
+	TrafficLightInit(&trafficLight);
+
+	xTrafficMutex = xSemaphoreCreateMutex();
 	xTaskCreate( ShiftRegTestTask, "ShiftTest", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
 	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 
@@ -190,16 +193,18 @@ void ShiftRegTestTask( void* pvParameters)
 
 	while(1)
 	{
-		if (xSemaphoreTake(xBitFieldMutex, (TickType_t)100) == pdTRUE)
+		if (xSemaphoreTake(xTrafficMutex, (TickType_t)100) == pdTRUE)
 		{
-			lightState = 	(lightState == Red)		? Green :
-							((lightState == Green)	? Yellow: Red);
+			TrafficLightState_t* lightState = &(trafficLight.currentState);
+
+			*lightState = 	(*lightState == Red)		? Green :
+							((*lightState == Green)	? Yellow: Red);
 
 			oncomingTrafficBitField = (oncomingTrafficBitField + 1) % 0xFF;
 			intersectionTrafficBitField = (intersectionTrafficBitField + 1) % 0b1000;
 			outgoingTrafficBitField = (outgoingTrafficBitField + 1 ) % 0xFF;
 
-			xSemaphoreGive( xBitFieldMutex );
+			xSemaphoreGive( xTrafficMutex );
 		}
 
 		vTaskDelay(250);

@@ -20,14 +20,14 @@ void vDisplayTask( void* pvParameters )
 	{
 		// TEMP: this should be replaced with taking and giving a mutex
 
-		if ( xSemaphoreTake( xBitFieldMutex, (TickType_t)100 ) == pdTRUE );
+		if ( xSemaphoreTake( xTrafficMutex, (TickType_t)100 ) == pdTRUE )
 		{
-			light		= (uint32_t)lightState;
+			light		= (uint32_t)(trafficLight.currentState);
 			oncoming	= oncomingTrafficBitField;
 			outgoing	= outgoingTrafficBitField;
 			intersect	= intersectionTrafficBitField;
 
-			xSemaphoreGive( xBitFieldMutex );
+			xSemaphoreGive( xTrafficMutex );
 
 			displaySequence =
 					(oncoming << ONCOMING_SHIFT)	|
