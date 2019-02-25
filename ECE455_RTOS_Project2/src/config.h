@@ -37,4 +37,10 @@
 #define POT_PORT				GPIOA
 #define POT_PIN					GPIO_Pin_1
 
+// Traffic length configs
+#define ONCOMING_SHIFT	(0)
+#define INTERSECT_SHIFT	(8)
+#define LIGHT_SHIFT		(11)
+#define OUTGOING_SHIFT	(14)
+
 #endif /* CONFIG_H_ */
