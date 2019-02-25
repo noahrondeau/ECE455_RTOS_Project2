@@ -30,16 +30,11 @@ void vTrafficLightInit(TrafficLight_t* trafficLight)
 void vTrafficLightControlTask(void* pvParameters)
 {
 	//Parameter obtained from traffic flow task
-	float trafficFlow;
+	float rxFlow = 0;
 
 	while(1)
 	{
-
-		if (xSemaphoreTake(xFlowMutex, (portTickType)10) == pdTRUE )
-		{
-			trafficFlow = flowRate;
-			xSemaphoreGive(xFlowMutex);
-		}
+		Messenger_Pigeon___Receive (&g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1,(void*) &rxFlow);
 
 		// See if we can obtain the semaphore.  If the semaphore is not available wait 10 ticks to see if it becomes free.
 		if( xSemaphoreTake( xLightMutex, ( portTickType ) 10 ) == pdTRUE )
@@ -59,7 +54,7 @@ void vTrafficLightControlTask(void* pvParameters)
 			case Red:
 				//if heavy traffic have a short red (3s) other wise have a long red (5s)
 				trafficLight.nextState = Green;
-				trafficLight.lightDelay = 4*trafficLight.baseDelay - (int)(trafficFlow*1000);
+				trafficLight.lightDelay = 4*trafficLight.baseDelay - (int)(rxFlow*1000);
 				break;
 
 			case Yellow:
@@ -72,12 +67,15 @@ void vTrafficLightControlTask(void* pvParameters)
 			case Green:
 				//if heavy traffic have a long green (8s) other wise have a short green (4s)
 				trafficLight.nextState = Yellow;
-				trafficLight.lightDelay = 4*trafficLight.baseDelay + (int)(trafficFlow*4000);
+				trafficLight.lightDelay = 4*trafficLight.baseDelay + (int)(rxFlow*4000);
 				break;
 
 			default:
 				//should never reach here
-				printf("light state error");
+				printf("light state error, resetting to Green Light");
+				trafficLight.lightDelay = trafficLight.baseDelay;
+				trafficLight.init = true;
+				trafficLight.currentState = Green;
 				break;
 			}
 
