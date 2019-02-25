@@ -18,14 +18,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "FreeRTOS.h"
+#include "semphr.h"
 
 
 //Traffic Light Variables
 typedef enum trafficLightState
 {
-	Red,
-	Yellow,
-	Green,
+	Red = 0b100,
+	Yellow = 0b010,
+	Green = 0b001,
 } trafficLightState;
 
 typedef volatile struct trafficLight
@@ -38,7 +39,12 @@ typedef volatile struct trafficLight
 
 }trafficLight;
 
-void TrafficLightControlTask( void* pvParameters, trafficLight* trafficLight);
+//Globals
+trafficLight TrafficLight;
+xSemaphoreHandle xMutexTrafficLight = NULL;
+
+//Function Prototypes
+void TrafficLightControlTask( void* pvParameters);
 void TrafficLightInit(trafficLight* trafficLight);
 
 
