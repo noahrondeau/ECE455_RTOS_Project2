@@ -8,6 +8,7 @@
 /*****INCLUDES*******/
 
 #include "TrafficLight.h"
+#include "messenger_pigeons.h"
 
 /*****FUNCTIONS******/
 void vTrafficLightInit(TrafficLight_t* trafficLight)

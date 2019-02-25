@@ -33,3 +33,15 @@ void MyADC_Init()
 	// ADC regular channel config
 	ADC_RegularChannelConfig(POT_ADC, POT_ADC_CHANNEL, 1, ADC_SampleTime_84Cycles);
 }
+
+uint16_t ADC___Read(ADC_TypeDef* ADCx)
+{
+	// Start the ADC read.
+	ADC_SoftwareStartConv(ADCx);
+
+	// Wait for the ADC read to finish.
+	while(!ADC_GetFlagStatus(ADCx, ADC_FLAG_EOC));
+
+	// Return the read ADC value.
+	return( ADC_GetConversionValue(ADCx) );
+}
