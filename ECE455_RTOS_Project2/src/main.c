@@ -137,11 +137,17 @@ functionality.
 #include "config.h" // includes all necessary headers, defines, etc
 #include "ADC.h"
 #include "ShiftReg.h"
-
-/*User includes*/
-//#include "TrafficLight.h"
+#include "DisplayTask.h"
+#include "TrafficLight.h"
 
 /* Definitions */
+
+trafficLightState lightState = Red;
+uint32_t oncomingTrafficBitField = 0;
+uint32_t intersectionTrafficBitField = 0;
+uint32_t outgoingTrafficBitField = 0;
+
+SemaphoreHandle_t xBitFieldMutex;
 
 /* FreeRTOS declarations */
 /*
@@ -164,10 +170,11 @@ int main(void)
 	// Initialize necessary GPIO and ADC pins
 	ShiftReg_Init();
 	MyADC_Init();
-
 	prvSetupHardware();
 
-	xTaskCreate( ShiftRegTestTask, "ShiftTest", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	xBitFieldMutex = xSemaphoreCreateMutex();
+	xTaskCreate( ShiftRegTestTask, "ShiftTest", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
+	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 
 	/* Start the tasks and timer running. */
 	vTaskStartScheduler();
@@ -180,21 +187,22 @@ int main(void)
 
 void ShiftRegTestTask( void* pvParameters)
 {
-	ShiftReg_Clear();
-	uint32_t seq = 1;
 
 	while(1)
 	{
-		ShiftReg_Update(seq);
-		seq += 1;
-
-		if (seq >= (uint32_t)(1 << 22))
+		if (xSemaphoreTake(xBitFieldMutex, (TickType_t)100) == pdTRUE)
 		{
-			seq = 1;
-			ShiftReg_Clear();
+			lightState = 	(lightState == Red)		? Green :
+							((lightState == Green)	? Yellow: Red);
+
+			oncomingTrafficBitField = (oncomingTrafficBitField + 1) % 0xFF;
+			intersectionTrafficBitField = (intersectionTrafficBitField + 1) % 0b1000;
+			outgoingTrafficBitField = (outgoingTrafficBitField + 1 ) % 0xFF;
+
+			xSemaphoreGive( xBitFieldMutex );
 		}
 
-		vTaskDelay(500);
+		vTaskDelay(250);
 	}
 }
 

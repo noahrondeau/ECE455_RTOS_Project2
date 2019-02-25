@@ -24,9 +24,9 @@
 //Traffic Light Variables
 typedef enum trafficLightState
 {
-	Red = 0b100,
-	Yellow = 0b010,
-	Green = 0b001,
+	Red		= 0b100,
+	Yellow	= 0b010,
+	Green	= 0b001,
 } trafficLightState;
 
 typedef volatile struct trafficLight
