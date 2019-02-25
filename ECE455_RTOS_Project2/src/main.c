@@ -145,12 +145,9 @@ functionality.
 uint32_t oncomingTrafficBitField = 0;
 uint32_t intersectionTrafficBitField = 0;
 uint32_t outgoingTrafficBitField = 0;
+
 TrafficLight_t trafficLight;
 int flowRate = 0;
-
-SemaphoreHandle_t xLightMutex;
-SemaphoreHandle_t xTrafficMutex;
-SemaphoreHandle_t xFlowMutex;
 
 /* FreeRTOS declarations */
 /*
@@ -182,7 +179,7 @@ int main(void)
 	xFlowMutex		= xSemaphoreCreateMutex();
 
 	xTaskCreate( vMockTask, "MockTask", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
-	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	DisplayTaskHandle = xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 	xTaskCreate( vTrafficLightControlTask, "TafficLightControlTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 
 	/* Start the tasks and timer running. */

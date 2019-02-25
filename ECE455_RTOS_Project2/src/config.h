@@ -45,4 +45,12 @@
 #define LIGHT_SHIFT		(11)
 #define OUTGOING_SHIFT	(14)
 
+#define TIME_PERIOD		(500);
+
+
+SemaphoreHandle_t xLightMutex;
+SemaphoreHandle_t xTrafficMutex;
+SemaphoreHandle_t xFlowMutex;
+TaskHandle_t DisplayTaskHandle;
+
 #endif /* CONFIG_H_ */

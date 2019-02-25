@@ -31,8 +31,6 @@ typedef volatile struct TrafficLight
 }TrafficLight_t;
 
 extern TrafficLight_t trafficLight;
-extern SemaphoreHandle_t xLightMutex;
-extern SemaphoreHandle_t xFlowMutex;
 extern int flowRate;
 
 //Function Prototypes
