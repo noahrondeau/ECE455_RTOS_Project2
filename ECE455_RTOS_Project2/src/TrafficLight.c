@@ -17,8 +17,6 @@ void TrafficLightInit(TrafficLight_t* trafficLight)
 	trafficLight->baseDelay = 1000; //1000ms -> 1s base delay
 	trafficLight->lightDelay = trafficLight->baseDelay;
 	trafficLight->init = true;
-
-	xLightMutex = xSemaphoreCreateMutex();
 }
 
 void TrafficLightControlTask(void* pvParameters)

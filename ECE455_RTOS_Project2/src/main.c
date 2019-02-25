@@ -175,7 +175,9 @@ int main(void)
 
 	TrafficLightInit(&trafficLight);
 
-	xTrafficMutex = xSemaphoreCreateMutex();
+	xTrafficMutex 	= xSemaphoreCreateMutex();
+	xLightMutex 	= xSemaphoreCreateMutex();
+
 	xTaskCreate( ShiftRegTestTask, "ShiftTest", configMINIMAL_STACK_SIZE, NULL, 2, NULL);
 	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 
