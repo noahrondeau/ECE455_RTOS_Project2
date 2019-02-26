@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 #include "FreeRTOS.h"
 #include "timers.h"
 
@@ -50,6 +51,7 @@ void INTERNAL___Periodic_Timer___timer_callback_function(TimerHandle_t h___timer
 	// If the period for this timer needs changing, do that now.
 	if (p___timer->x___new_period___ticks != p___timer->x___current_period___ticks)
 	{
+		printf("We are changing the period\n");
 		// Change the timer period.
 		BaseType_t return_value = xTimerChangePeriod(h___timer, p___timer->x___new_period___ticks, portMAX_DELAY);
 		if (return_value == pdFAIL)
@@ -63,6 +65,7 @@ void INTERNAL___Periodic_Timer___timer_callback_function(TimerHandle_t h___timer
 		
 		// Save the new period as current.
 		p___timer->x___current_period___ticks = p___timer->x___new_period___ticks;
+		printf("Callback timer period change, new current period: %u \n",(uint32_t)p___timer->x___current_period___ticks);
 	}
 	
 	// Release the mutex.
@@ -74,7 +77,7 @@ void INTERNAL___Periodic_Timer___timer_callback_function(TimerHandle_t h___timer
 	
 	// Now, proceed as normal to the timer's user-supplied callback function.
 	(*p___timer->p_func__callback)(h___timer);
-	
+	printf("timer callback success\n");
 	// Done.
 }
 
@@ -108,7 +111,11 @@ EXIT_STATUS Periodic_Timer___Init(Periodic_Timer* p___timer, uint32_t u32___peri
 		return(EXIT_FAILURE);
 	}
 	p___timer->h___timer = return_value;
+
+	//Start Timer
+	BaseType_t temp = xTimerStart(p___timer->h___timer,portMAX_DELAY);
 	
+	printf("Timer initialized\n");
 	// Done.
 	return(EXIT_SUCCESS);
 }
@@ -134,7 +141,7 @@ EXIT_STATUS Periodic_Timer___Change_Period(Periodic_Timer* p___timer, TickType_t
 	
 	// Set the value for the new period.
 	p___timer->x___new_period___ticks = x___new_period_ticks;
-	
+	printf("New Period Timer Changed to: %u \n",(uint32_t)x___new_period_ticks);
 	
 	// Release the mutex.
 	exit_status = Mutex___Release(&p___timer->mutex);
@@ -143,7 +150,7 @@ EXIT_STATUS Periodic_Timer___Change_Period(Periodic_Timer* p___timer, TickType_t
 		Error(FUNCTION_SIGNATURE, "Failed to release the mutex.\n");
 		return(exit_status);
 	}
-	
+	 printf("Timer period change requested\n");
 	// Done.
 	return(EXIT_SUCCESS);
 }

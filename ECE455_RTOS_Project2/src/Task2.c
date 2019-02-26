@@ -30,6 +30,7 @@ bool            g_b___pre_calculated___a_new_car;
 //------------------------------------ timer callback -------------------------------------------------------------------------------------
 void Task2___timer_callback(TimerHandle_t h___timer)
 {
+	printf("task2 timer call back top\n");
 	// This is triggered at the rate of traffic creation.
 	
 	// Will I be creating a new car? (this will have been pre-calculated)
@@ -39,6 +40,7 @@ void Task2___timer_callback(TimerHandle_t h___timer)
 		
 		// Send the new car to task4.
 		xEventGroupSetBits(xEvent, 1);  // Task4 is using bit0 of this event group.
+		printf("car created \n");
 	}
 	
 	// Pre-calculate, for next time, whether or not I'll be creating a new car.
@@ -55,6 +57,7 @@ void Task2___timer_callback(TimerHandle_t h___timer)
 	
 	// Is my random number within the threshold for creating a new car?
 	g_b___pre_calculated___a_new_car = (fp32___random_number___between_0_and_1 <= g_fp32___traffic_creation_threshold) ? 1 : 0;
+	printf("task2 timer call back bottom\n");
 }
 
 //------------------------------------ task -----------------------------------------------------------------------------------------------
@@ -85,6 +88,7 @@ void Task2(void* p___parameters)
 		x___temp = fp32___temp;
 		x___new_period___ticks = gx___MAX_traffic_arrival_rate___period___ticks + x___temp;
 		
+		printf("task2 timer period change\n");
 		exit_status = Periodic_Timer___Change_Period(&g_timer___task2, x___new_period___ticks);
 		if (exit_status != 0)
 		{
