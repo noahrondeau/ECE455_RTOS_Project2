@@ -11,6 +11,7 @@
 //INCLUDES
 #include "config.h"
 #include "Periodic_Timer.h"
+#include "timers.h"
 
 
 //Traffic Light Variables
@@ -39,7 +40,7 @@ extern int flowRate;
 //Function Prototypes
 void vTrafficLightControlTask( void* pvParameters);
 void vTrafficLightInit(TrafficLight_t* trafficLight);
-void vTrafficCallback(TimerHandle_t tlTimer);
+void vTrafficCallback(void);
 
 
 #endif /* TRAFFICLIGHT_H_ */
