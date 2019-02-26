@@ -20,6 +20,30 @@ void vTrafficLightInit(TrafficLight_t* trafficLight)
 	trafficLight->init = true;
 }
 
+void vTrafficLightCallback(TimerHandle_t tlTimer){
+	if( xSemaphoreTake( xLightMutex, ( portTickType )10 ) == pdTRUE )
+	{
+		switch (trafficLight.currentState)
+		{
+			case Red:
+				trafficLight.currentState = Green;
+				break;
+
+			case Yellow:
+				trafficLight.nextState = Red;
+				break;
+
+			case Green:
+				trafficLight.nextState = Yellow;
+				break;
+		}
+
+		xSemaphoreGive(xLightMutex);
+	}
+}
+
+
+
 /****NOMINAL OPERATION******
  * Receives flow from generator.
  * On first system run light will be initially green,
@@ -40,44 +64,38 @@ void vTrafficLightControlTask(void* pvParameters)
 		// See if we can obtain the semaphore.  If the semaphore is not available wait 10 ticks to see if it becomes free.
 		if( xSemaphoreTake( xLightMutex, ( portTickType )10 ) == pdTRUE )
 		{
+			if(trafficLight.currentState == trafficLight.nextState){
+				//sets task delays based on received load and current state
+							switch (trafficLight.currentState)
+							{
+							case Red:
+								//if heavy traffic have a short red (3s) other wise have a long red (5s)
+								trafficLight.nextState = Green;
+								trafficLight.lightDelay = 6*trafficLight.baseDelay - (int)(rxFlow*1000);
+								break;
 
-			/*
-			If first time task is run the state should be in green
-			otherwise update currentState from previous time task ran
-			 */
-			if(trafficLight.init) trafficLight.init=false;
-				else trafficLight.currentState = trafficLight.nextState;
+							case Yellow:
 
+								trafficLight.nextState = Red;
+								trafficLight.lightDelay = (4*trafficLight.baseDelay);
 
-			//sets task delays based on received load and current state
-			switch (trafficLight.currentState)
-			{
-			case Red:
-				//if heavy traffic have a short red (3s) other wise have a long red (5s)
-				trafficLight.nextState = Green;
-				trafficLight.lightDelay = 6*trafficLight.baseDelay - (int)(rxFlow*1000);
-				break;
+								break;
 
-			case Yellow:
+							case Green:
+								//if heavy traffic have a long green (8s) other wise have a short green (4s)
+								trafficLight.nextState = Yellow;
+								trafficLight.lightDelay = 6*trafficLight.baseDelay + (int)(rxFlow*4*trafficLight.baseDelay);
+								break;
 
-				trafficLight.nextState = Red;
-				trafficLight.lightDelay = (4*trafficLight.baseDelay);
+							default:
+								//should never reach here
+								printf("light state error, resetting to Green Light");
+								trafficLight.lightDelay = trafficLight.baseDelay;
+								trafficLight.init = true;
+								trafficLight.currentState = Green;
+								break;
+							}
 
-				break;
-
-			case Green:
-				//if heavy traffic have a long green (8s) other wise have a short green (4s)
-				trafficLight.nextState = Yellow;
-				trafficLight.lightDelay = 6*trafficLight.baseDelay + (int)(rxFlow*4*trafficLight.baseDelay);
-				break;
-
-			default:
-				//should never reach here
-				printf("light state error, resetting to Green Light");
-				trafficLight.lightDelay = trafficLight.baseDelay;
-				trafficLight.init = true;
-				trafficLight.currentState = Green;
-				break;
 			}
 
 			xSemaphoreGive(xLightMutex);
