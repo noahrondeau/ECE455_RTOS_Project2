@@ -9,6 +9,7 @@
 
 #include "TrafficLight.h"
 #include "messenger_pigeons.h"
+#include "Timer.h"
 
 /*****FUNCTIONS******/
 void vTrafficLightInit(TrafficLight_t* trafficLight)
@@ -18,10 +19,10 @@ void vTrafficLightInit(TrafficLight_t* trafficLight)
 	trafficLight->baseDelay = TIME_PERIOD; //1000ms -> 1s base delay
 	trafficLight->lightDelay = trafficLight->baseDelay;
 	trafficLight->init = true;
-	Timer___Init(&trafficLightTimer, 4000,vTrafficLightCallback(), "traffic lights");
+	Timer___Init(&trafficLightTimer, 4000,TrafficCallback, "traffic lights");
 }
 
-void vTrafficLightCallback(){
+void TrafficCallback(TimerHandle_t tlTimer){
 	if( xSemaphoreTake( xLightMutex, ( portTickType )10 ) == pdTRUE )
 	{
 		//changes the light state
@@ -82,7 +83,7 @@ void vTrafficLightControlTask(void* pvParameters)
 					case Yellow:
 
 						trafficLight.nextState = Red;
-						trafficLight.lightDelay = trafficLight.baseDelay;
+						trafficLight.lightDelay = 4*(trafficLight.baseDelay);
 
 						break;
 

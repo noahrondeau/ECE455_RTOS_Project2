@@ -1,18 +1,3 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-//  - This "Periodic_Timer" is based on "FreeRTOS software timers".
-//  - Alterations have be made to how changing the timer period is done.
-//
-//  - When "FreeRTOS software timers" change the timer period, the new period is based on when xTimerChangePeriod() was called. Ultimately,
-//    the timer is reset without being triggered, every time xTimerChangePeriod() is called.
-//  - This could lead to the situation where the timer is never actually triggered though.
-//
-//  - Instead, our "Periodic_Timer" only actually makes the period change once the current period has been triggered.
-//  - Removes the possibility of timer starvation.
-//  - Changes to timer period are always 1 period behind though. Should still be ok though.
-//  - If multiple timer period change requests are made before the current period is triggered, the new timer period will be the latest
-//    change request.
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 //==================================== interface ==========================================================================================
 //  typedef struct  Timer;
 //  

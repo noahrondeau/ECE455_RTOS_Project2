@@ -10,8 +10,7 @@
 
 //INCLUDES
 #include "config.h"
-#include "Periodic_Timer.h"
-#include "timers.h"
+#include "Timer.h"
 
 
 //Traffic Light Variables
@@ -33,14 +32,14 @@ typedef volatile struct TrafficLight
 }TrafficLight_t;
 
 extern TrafficLight_t trafficLight;
-Periodic_Timer trafficLightTimer;
+Timer trafficLightTimer;
 
 extern int flowRate;
 
 //Function Prototypes
 void vTrafficLightControlTask( void* pvParameters);
 void vTrafficLightInit(TrafficLight_t* trafficLight);
-void vTrafficCallback(void);
+void TrafficCallback(TimerHandle_t tlTimer);
 
 
 #endif /* TRAFFICLIGHT_H_ */

@@ -143,6 +143,7 @@ functionality.
 #include "Task2.h"
 #include "RNG.h"
 
+
 /* Definitions */
 
 TrafficLight_t trafficLight;
