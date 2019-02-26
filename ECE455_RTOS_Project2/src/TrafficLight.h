@@ -32,15 +32,14 @@ typedef volatile struct TrafficLight
 }TrafficLight_t;
 
 extern TrafficLight_t trafficLight;
-Periodic_Timer timerRedLight;
-Periodic_Timer timerRedLight;
-Periodic_Timer timerRedLight;
+Periodic_Timer trafficLightTimer;
 
 extern int flowRate;
 
 //Function Prototypes
 void vTrafficLightControlTask( void* pvParameters);
 void vTrafficLightInit(TrafficLight_t* trafficLight);
+void vTrafficCallback(TimerHandle_t tlTimer);
 
 
 #endif /* TRAFFICLIGHT_H_ */
