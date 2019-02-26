@@ -76,7 +76,7 @@ void Task2(void* p___parameters)
 	float fp32___temp;
 	TickType_t x___temp;
 	TickType_t x___new_period___ticks;
-	
+
 	while (1)
 	{
 		// Wait to receive a traffic flow rate value from task1, via messenger pigeon.
@@ -105,16 +105,13 @@ intern TickType_t HELPER___Frequency_to_Period____X_per_sec____ticks(float fp32_
 	TickType_t  x___period___ticks;
 	
 	// Calculate.
-	if (fp32___X_per_sec == 0.0)
+	if (fp32___X_per_sec <= 0.2)
 	{
-		x___period___ticks = portMAX_DELAY;
+		fp32___X_per_sec = 0.2;
 	}
-	else
-	{
-		fp32___period___ms = 1.0 / (fp32___X_per_sec / 1000.0);
-		u32___period___ms = fp32___period___ms;
-		x___period___ticks = pdMS_TO_TICKS(u32___period___ms);
-	}
+	fp32___period___ms = 1.0 / (fp32___X_per_sec / 1000.0);
+	u32___period___ms = fp32___period___ms;
+	x___period___ticks = pdMS_TO_TICKS(u32___period___ms);
 	
 	// Done.
 	return(x___period___ticks);
