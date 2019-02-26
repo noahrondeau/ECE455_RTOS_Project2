@@ -1,7 +1,9 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // - "Messenger Pigeon" is used to send messages from one task to another.
-// - Based on FreeRTOS "stream_buffers".
-// - Sized so that there can only be 1 message at a time, else blocked.
+// - Based on FreeRTOS "queue".
+// - Sized so that there can only be 1 message at a time
+// - Send is immediate. Replaces any old value with the new.
+// - Receive blocks until receivers something.
 // - Message size set (generally according to datatype) during init.
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -59,15 +61,10 @@ EXIT_STATUS Messenger_Pigeon___Send(Messenger_Pigeon* p___messenger_pigeon, cons
 	}
 	
 	// Send the messenger pigeon!
-	BaseType_t return_value = xQueueSendToBack(p___messenger_pigeon->h___queue, P___MSG, portMAX_DELAY);
-	if (return_value == errQUEUE_FULL)
-	{
-		Error(FUNCTION_SIGNATURE, "Failed to send to queue. Was full. This should NOT happen as I should have blocked until space.\n");
-		return(EXIT_FAILURE);
-	}
+	BaseType_t return_value = xQueueOverwrite(p___messenger_pigeon->h___queue, P___MSG);
 	if (return_value != pdPASS)
 	{
-		Error(FUNCTION_SIGNATURE, "Unknown failure: xQueueSendToBack()\n");
+		Error(FUNCTION_SIGNATURE, "Unknown failure: xQueueOverwrite()\n");
 		return(EXIT_FAILURE);
 	}
 	
