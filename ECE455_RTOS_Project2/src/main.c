@@ -204,6 +204,7 @@ int main(void)
 
 /*-----------------------------------------------------------*/
 
+/*
 void vMockTask( void* pvParameters)
 {
 
@@ -214,7 +215,7 @@ void vMockTask( void* pvParameters)
 	while(1)
 	{
 		//printf("Mock Task Loop Start\n");
-		/*
+
 		if (xSemaphoreTake(xTrafficMutex, (TickType_t)100) == pdTRUE)
 		{
 			TrafficLightState_t* lightState = &(trafficLight.currentState);
@@ -224,9 +225,9 @@ void vMockTask( void* pvParameters)
 			outgoingTrafficBitField = (outgoingTrafficBitField + 1 ) % 0xFF;
 
 			xSemaphoreGive( xTrafficMutex );
-		}*/
+		}
 
-		/*if (xSemaphoreTake(xFlowMutex, (TickType_t)100) == pdTRUE )
+		if (xSemaphoreTake(xFlowMutex, (TickType_t)100) == pdTRUE )
 		{
 			flowRate = rand() % 4;
 			xSemaphoreGive(xFlowMutex);
@@ -241,12 +242,12 @@ void vMockTask( void* pvParameters)
 		if (flowRate == 0)
 		{
 			xEventGroupSetBits(xEvent, (1<<0));
-		}*/
+		}
 
-		/*Messenger_Pigeon___Receive(
+		Messenger_Pigeon___Receive(
 				&g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1,
-				&adc_data1);*/
-		/*Messenger_Pigeon___Receive(
+				&adc_data1);
+		Messenger_Pigeon___Receive(
 				&g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1,
 				&adc_data2);
 
@@ -256,9 +257,9 @@ void vMockTask( void* pvParameters)
 		else printf("mouse\n");
 
 		//printf("Mock Task Loop End\n");
-		vTaskDelay(1000);*/
+		vTaskDelay(1000);
 	}
-}
+}*/
 
 /*-----------------------------------------------------------*/
 

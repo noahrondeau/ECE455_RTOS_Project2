@@ -75,14 +75,14 @@ void vDisplayTask( void* pvParameters )
 
 	while(1)
 	{
-		printf("Displaying\n");
+		//printf("Displaying\n");
 		// check if the event has occurred,
 		// if yes add a car
 		if ( (xEventGroupGetBits(xEvent) & 1) == (1 << 0 ) )
 		{
 			xEventGroupClearBits(xEvent, (1 << 0) );
 			carPresent = true;
-			printf("Car Arrival\n");
+			//printf("Car Arrival\n");
 		}
 
 		if ( xSemaphoreTake(xLightMutex, (TickType_t)10) == pdTRUE)
@@ -96,7 +96,7 @@ void vDisplayTask( void* pvParameters )
 		ShiftReg_Update(displaySequence);
 
 		carPresent = false;
-		printf("Display end\n");
+		//printf("Display end\n");
 		vTaskDelay(TIME_PERIOD);
 	}
 
