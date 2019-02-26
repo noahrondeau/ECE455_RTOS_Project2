@@ -10,6 +10,7 @@
 
 //INCLUDES
 #include "config.h"
+#include "Periodic_Timer.h"
 
 
 //Traffic Light Variables
@@ -31,6 +32,10 @@ typedef volatile struct TrafficLight
 }TrafficLight_t;
 
 extern TrafficLight_t trafficLight;
+Periodic_Timer timerRedLight;
+Periodic_Timer timerRedLight;
+Periodic_Timer timerRedLight;
+
 extern int flowRate;
 
 //Function Prototypes
