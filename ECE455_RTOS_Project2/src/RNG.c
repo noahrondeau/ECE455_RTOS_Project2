@@ -8,7 +8,7 @@
 #include "stm32f4xx_rcc.h"
 #include "stm32f4xx_rng.h"
 
-#include "defs.h"
+#include "config.h"
 
 //------------------------------------ functions ------------------------------------------------------------------------------------------
 void RNG___Init(void)

@@ -13,7 +13,7 @@
 #include "FreeRTOS.h"
 #include "semphr.h"
 #include "Error.h"
-#include "defs.h"
+#include "config.h"
 
 //------------------------------------ task -----------------------------------------------------------------------------------------------
 EXIT_STATUS Mutex___Init(Mutex* p___mutex)

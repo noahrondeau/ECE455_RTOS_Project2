@@ -5,7 +5,7 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 
-#include "defs.h"
+#include "config.h"
 
 //------------------------------------ data-types -----------------------------------------------------------------------------------------
 typedef struct

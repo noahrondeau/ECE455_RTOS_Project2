@@ -8,6 +8,10 @@
 #include "DisplayTask.h"
 #include "ShiftReg.h"
 
+extern TrafficLight_t trafficLight;
+extern SemaphoreHandle_t xLightMutex;
+extern EventGroupHandle_t xEvent;
+
 static void ShiftOncomingWhenStopped(uint32_t* oncoming, bool carPresent)
 {
 	uint32_t searchMask = (uint32_t)(0b10000000);

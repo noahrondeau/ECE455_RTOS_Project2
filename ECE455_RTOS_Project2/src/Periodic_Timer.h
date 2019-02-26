@@ -6,7 +6,7 @@
 #include "FreeRTOS.h"
 #include "timers.h"
 
-#include "defs.h"
+#include "config.h"
 #include "Error.h"
 #include "Mutex.h"
 

@@ -22,8 +22,6 @@
 #include "FreeRTOS.h"
 #include "queue.h"
 #include "config.h"
-
-#include "defs.h"
 #include "Error.h"
 
 //------------------------------------ functions ------------------------------------------------------------------------------------------

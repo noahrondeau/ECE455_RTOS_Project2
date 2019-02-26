@@ -30,9 +30,6 @@ typedef volatile struct TrafficLight
 
 }TrafficLight_t;
 
-extern TrafficLight_t trafficLight;
-extern int flowRate;
-
 //Function Prototypes
 void vTrafficLightControlTask( void* pvParameters);
 void vTrafficLightInit(TrafficLight_t* trafficLight);

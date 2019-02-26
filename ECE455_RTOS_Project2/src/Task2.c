@@ -10,11 +10,8 @@
 #include "FreeRTOS.h"
 #include "event_groups.h"
 
-#include "defs.h"
-#include "priorities.h"
 #include "Task.h"
 #include "Messenger_Pigeon.h"
-#include "messenger_pigeons.h"
 #include "Periodic_Timer.h"
 #include "RNG.h"
 
@@ -26,6 +23,10 @@ TickType_t      gx___MIN_traffic_arrival_rate___period___ticks;
 TickType_t      gx___MAX_traffic_arrival_rate___period___ticks;
 float           g_fp32___traffic_creation_threshold;
 bool            g_b___pre_calculated___a_new_car;
+
+extern EventGroupHandle_t xEvent;
+extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
+extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1;
 
 //------------------------------------ timer callback -------------------------------------------------------------------------------------
 void Task2___timer_callback(TimerHandle_t h___timer)
@@ -153,7 +154,7 @@ EXIT_STATUS Task2___Init(float fp32___MIN_traffic_arrival_rate___cars_per_sec, f
 	}
 	
 	// Create the task.
-	exit_status = Task___Init(NULL, Task2, "Task2", configMINIMAL_STACK_SIZE, NULL, PRIORITY___regular);
+	exit_status = Task___Init(NULL, Task2, "Task2", configMINIMAL_STACK_SIZE, NULL, 1);
 	if (exit_status != 0)
 	{
 		Error(FUNCTION_SIGNATURE, "Failed to create task2.\n");

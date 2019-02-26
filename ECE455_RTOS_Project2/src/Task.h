@@ -5,7 +5,6 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "config.h"
-#include "defs.h"
 
 //------------------------------------ data-types -----------------------------------------------------------------------------------------
 typedef struct

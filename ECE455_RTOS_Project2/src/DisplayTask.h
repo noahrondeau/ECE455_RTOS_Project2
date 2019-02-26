@@ -11,9 +11,6 @@
 #include "config.h"
 #include "TrafficLight.h"
 
-extern TrafficLight_t trafficLight;
-extern SemaphoreHandle_t xTrafficMutex;
-
 void vDisplayTask( void* pvParameters );
 
 #endif /* DISPLAYTASK_H_ */

@@ -13,7 +13,6 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
-#include <time.h>
 #include "stm32f4_discovery.h"
 /* Kernel includes. */
 #include "stm32f4xx.h"
@@ -24,8 +23,13 @@
 #include "../FreeRTOS_Source/include/timers.h"
 #include "../FreeRTOS_Source/include/event_groups.h"
 
-#include "messenger_pigeons.h"
 #include "Error.h"
+#include "RNG.h"
+
+#define FUNCTION_SIGNATURE  __PRETTY_FUNCTION__
+
+#define intern              static
+#define EXIT_STATUS         uint8_t
 
 
 // SHIFT REGISTER HOOKUP DEFS
@@ -44,19 +48,17 @@
 #define POT_PORT				GPIOA
 #define POT_PIN					GPIO_Pin_1
 
+
+#define ADC_VALUE_MAX (0b111111111111);
+
 // Traffic length configs
 #define ONCOMING_SHIFT	(0)
 #define INTERSECT_SHIFT	(8)
 #define LIGHT_SHIFT		(11)
 #define OUTGOING_SHIFT	(14)
 
+// Timing Configs
 #define TIME_PERIOD		(1000)
 
-
-SemaphoreHandle_t xLightMutex;
-SemaphoreHandle_t xTrafficMutex;
-SemaphoreHandle_t xFlowMutex;
-TaskHandle_t DisplayTaskHandle;
-EventGroupHandle_t xEvent;
 
 #endif /* CONFIG_H_ */

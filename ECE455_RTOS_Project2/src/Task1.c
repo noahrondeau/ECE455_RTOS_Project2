@@ -16,16 +16,18 @@
 #include "stm32f4xx_adc.h"
 #include "FreeRTOS.h"
 
-#include "defs.h"
-#include "priorities.h"
 #include "Task.h"
 #include "ADC.h"
 #include "Messenger_Pigeon.h"
-#include "messenger_pigeons.h"
 
 //------------------------------------ globals --------------------------------------------------------------------------------------------
 ADC_TypeDef*  g___which_ADC_using;
 TickType_t    gx___ticks_between_ADC_reads;
+
+extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
+extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1;
+
+
 
 //------------------------------------ task -----------------------------------------------------------------------------------------------
 void Task1(void* p___parameters)
@@ -79,7 +81,7 @@ EXIT_STATUS Task1___Init(ADC_TypeDef* which_ADC_using, uint32_t u32___ms_between
 	gx___ticks_between_ADC_reads = pdMS_TO_TICKS(u32___ms_between_ADC_reads);
 	
 	// Create the task.
-	EXIT_STATUS exit_status = Task___Init(NULL, Task1, "Task1", configMINIMAL_STACK_SIZE, NULL, PRIORITY___regular);
+	EXIT_STATUS exit_status = Task___Init(NULL, Task1, "Task1", configMINIMAL_STACK_SIZE, NULL, 1);
 	if (exit_status != 0)
 	{
 		Error(FUNCTION_SIGNATURE, "Failed to create task1.\n");

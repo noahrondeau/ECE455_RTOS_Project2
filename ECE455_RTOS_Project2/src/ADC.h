@@ -11,9 +11,8 @@
 #include "config.h"
 #include <stdint.h>
 #include "stm32f4xx_adc.h"
-#include "defs.h"
 
-#define ADC_VALUE_MAX 0b111111111111;
+#define ADC_VALUE_MAX (0b111111111111);
 
 void MyADC_Init(void);
 uint16_t ADC___Read(ADC_TypeDef* ADCx);

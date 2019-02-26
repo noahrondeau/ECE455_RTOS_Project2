@@ -11,7 +11,7 @@
 #include "FreeRTOS.h"
 #include "task.h"
 #include "Error.h"
-#include "defs.h"
+#include "config.h"
 
 //------------------------------------ functions ------------------------------------------------------------------------------------------
 EXIT_STATUS Task___Init(Task* p___task, TaskFunction_t task_function, const char* const PZ___TASK_NAME, unsigned short stack_size, void* p___parameters, UBaseType_t priority)

@@ -137,141 +137,77 @@ functionality.
 #include "config.h" // includes all necessary headers, defines, etc
 #include "ADC.h"
 #include "ShiftReg.h"
-#include "DisplayTask.h"
-#include "TrafficLight.h"
 #include "Task1.h"
 #include "Task2.h"
-#include "RNG.h"
+#include "DisplayTask.h"
+#include "TrafficLight.h"
+#include "Messenger_Pigeon.h"
 
-/* Definitions */
+/* Global Variable Definitions */
 
 TrafficLight_t trafficLight;
-int flowRate = 0;
-
+SemaphoreHandle_t xLightMutex;
+EventGroupHandle_t xEvent;
 Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
 Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1;
 
-/* FreeRTOS declarations */
-/*
- * TODO: Implement this function for any hardware specific clock configuration
- * that was not already performed before main() was called.
- */
+/* Local Function Definitions */
 static void prvSetupHardware( void );
-
-
-/* Private Declarations */
-
-void vMockTask( void* pvParameters);
-
+void vInitializeHardware( void );
+void vInitializeGlobals( void );
+void vInitializeTasks( void );
 
 
 /*-----------------------------------------------------------*/
 
 int main(void)
 {
-	// Initialize necessary GPIO and ADC pins
-	ShiftReg_Init();
-	MyADC_Init();
-	RNG___Init();
-	prvSetupHardware();
-
-	srand(time(0));
-
-	vTrafficLightInit(&trafficLight);
-
-	xTrafficMutex 	= xSemaphoreCreateMutex();
-	xLightMutex 	= xSemaphoreCreateMutex();
-	xFlowMutex		= xSemaphoreCreateMutex();
-
-	Init_Our_Lovely_Messenger_Pigeons();
-
-	xEvent			= xEventGroupCreate();
-
-	Task1___Init(ADC1, TIME_PERIOD); // ADC polling
-	Task2___Init(0.0,1.0,0.7); // Traffic Flow Creation
-	//xTaskCreate( vMockTask, "MockTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-	xTaskCreate( vTrafficLightControlTask, "TafficLightControlTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
-
-
-	/* Start the tasks and timer running. */
+	vInitializeHardware();
+	vInitializeGlobals();
+	vInitializeTasks();
 	vTaskStartScheduler();
-
 	return 0;
 }
 
 
 /*-----------------------------------------------------------*/
 
-void vMockTask( void* pvParameters)
+void vInitializeHardware( void )
 {
+	// Initialize necessary GPIO and ADC pins
+	ShiftReg_Init();
+	MyADC_Init();
+	RNG___Init();
+	prvSetupHardware();
+}
 
-	printf("Mock Tast Start\n");
-	float adc_data1 = 0.0;
-	float adc_data2 = 0.0;
+void vInitializeGlobals( void )
+{
+	vTrafficLightInit(&trafficLight);
+	xLightMutex = xSemaphoreCreateMutex();
+	xEvent = xEventGroupCreate();
 
-	while(1)
+	EXIT_STATUS exit_status;
+	exit_status = Messenger_Pigeon___Create(&g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1, sizeof(float));
+	if (exit_status != 0)
 	{
-		//printf("Mock Task Loop Start\n");
-		/*
-		if (xSemaphoreTake(xTrafficMutex, (TickType_t)100) == pdTRUE)
-		{
-			TrafficLightState_t* lightState = &(trafficLight.currentState);
+		Error(FUNCTION_SIGNATURE, "Failed to init pigeon FROM task1 TO task2.\n");
+	}
 
-			oncomingTrafficBitField = (oncomingTrafficBitField + 1) % 0xFF;
-			intersectionTrafficBitField = (intersectionTrafficBitField + 1) % 0b1000;
-			outgoingTrafficBitField = (outgoingTrafficBitField + 1 ) % 0xFF;
-
-			xSemaphoreGive( xTrafficMutex );
-		}*/
-
-		/*if (xSemaphoreTake(xFlowMutex, (TickType_t)100) == pdTRUE )
-		{
-			flowRate = rand() % 4;
-			xSemaphoreGive(xFlowMutex);
-		}
-
-		if (xSemaphoreTake(xLightMutex, (TickType_t)10) == pdTRUE)
-		{
-			trafficLight.currentState = Green;
-			xSemaphoreGive(xLightMutex);
-		}
-
-		if (flowRate == 0)
-		{
-			xEventGroupSetBits(xEvent, (1<<0));
-		}*/
-
-		/*Messenger_Pigeon___Receive(
-				&g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1,
-				&adc_data1);*/
-		/*Messenger_Pigeon___Receive(
-				&g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1,
-				&adc_data2);
-
-
-		//printf("ADC data1: %f, ADC data2: %f\n", adc_data1, adc_data2);
-		if(adc_data2 > 0.5) printf("elephant\n");
-		else printf("mouse\n");
-
-		//printf("Mock Task Loop End\n");
-		vTaskDelay(1000);*/
+	exit_status = Messenger_Pigeon___Create(&g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1, sizeof(float));
+	if (exit_status != 0)
+	{
+		Error(FUNCTION_SIGNATURE, "Failed to init pigeon FROM task1 TO task3.\n");
 	}
 }
 
-/*-----------------------------------------------------------*/
-
-/*-----------------------------------------------------------*/
-
-
-
-/*-----------------------------------------------------------*/
-
-
-
-
-/*-----------------------------------------------------------*/
-
+void vInitializeTasks( void )
+{
+	Task1___Init(ADC1, TIME_PERIOD); // ADC polling
+	Task2___Init(0.0,1.0,0.7); // Traffic Flow Creation
+	xTaskCreate( vTrafficLightControlTask, "TafficLightControlTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+}
 
 /*-----------------------------------------------------------*/
 
