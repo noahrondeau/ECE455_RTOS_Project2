@@ -24,6 +24,9 @@
 #include "../FreeRTOS_Source/include/timers.h"
 #include "../FreeRTOS_Source/include/event_groups.h"
 
+#include "messenger_pigeons.h"
+#include "Error.h"
+
 
 // SHIFT REGISTER HOOKUP DEFS
 #define SHIFT_REG_PORT			GPIOC
