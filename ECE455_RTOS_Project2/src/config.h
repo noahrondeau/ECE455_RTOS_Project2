@@ -50,7 +50,7 @@
 #define LIGHT_SHIFT		(11)
 #define OUTGOING_SHIFT	(14)
 
-#define TIME_PERIOD		(500);
+#define TIME_PERIOD		(1000)
 
 
 SemaphoreHandle_t xLightMutex;

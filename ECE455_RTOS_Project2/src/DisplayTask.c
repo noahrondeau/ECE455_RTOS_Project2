@@ -97,7 +97,7 @@ void vDisplayTask( void* pvParameters )
 
 		carPresent = false;
 		printf("Display end\n");
-		vTaskDelay(1000);
+		vTaskDelay(TIME_PERIOD);
 	}
 
 }

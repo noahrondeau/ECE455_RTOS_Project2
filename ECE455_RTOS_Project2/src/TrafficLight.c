@@ -15,7 +15,7 @@ void vTrafficLightInit(TrafficLight_t* trafficLight)
 {
 	trafficLight->currentState = Green;
 	trafficLight->nextState = Yellow;
-	trafficLight->baseDelay = 1000; //1000ms -> 1s base delay
+	trafficLight->baseDelay = TIME_PERIOD; //1000ms -> 1s base delay
 	trafficLight->lightDelay = trafficLight->baseDelay;
 	trafficLight->init = true;
 }
@@ -38,7 +38,7 @@ void vTrafficLightControlTask(void* pvParameters)
 		Messenger_Pigeon___Receive (&g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1,(void*) &rxFlow);
 
 		// See if we can obtain the semaphore.  If the semaphore is not available wait 10 ticks to see if it becomes free.
-		if( xSemaphoreTake( xLightMutex, ( portTickType ) 10 ) == pdTRUE )
+		if( xSemaphoreTake( xLightMutex, ( portTickType )10 ) == pdTRUE )
 		{
 
 			/*
@@ -55,20 +55,20 @@ void vTrafficLightControlTask(void* pvParameters)
 			case Red:
 				//if heavy traffic have a short red (3s) other wise have a long red (5s)
 				trafficLight.nextState = Green;
-				trafficLight.lightDelay = 4*trafficLight.baseDelay - (int)(rxFlow*1000);
+				trafficLight.lightDelay = 6*trafficLight.baseDelay - (int)(rxFlow*1000);
 				break;
 
 			case Yellow:
 
 				trafficLight.nextState = Red;
-				trafficLight.lightDelay = (trafficLight.baseDelay);
+				trafficLight.lightDelay = (4*trafficLight.baseDelay);
 
 				break;
 
 			case Green:
 				//if heavy traffic have a long green (8s) other wise have a short green (4s)
 				trafficLight.nextState = Yellow;
-				trafficLight.lightDelay = 4*trafficLight.baseDelay + (int)(rxFlow*4000);
+				trafficLight.lightDelay = 6*trafficLight.baseDelay + (int)(rxFlow*4*trafficLight.baseDelay);
 				break;
 
 			default:
