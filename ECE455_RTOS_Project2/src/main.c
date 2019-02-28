@@ -146,6 +146,7 @@ functionality.
 /* Global Variable Definitions */
 
 TrafficLight_t trafficLight;
+Timer trafficLightTimer;
 SemaphoreHandle_t xLightMutex;
 EventGroupHandle_t xEvent;
 Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;

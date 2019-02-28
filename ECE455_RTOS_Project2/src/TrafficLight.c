@@ -11,6 +11,7 @@
 #include "Messenger_Pigeon.h"
 
 extern TrafficLight_t trafficLight;
+extern Timer trafficLightTimer;
 extern SemaphoreHandle_t xLightMutex;
 extern EventGroupHandle_t xEvent;
 extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
@@ -24,6 +25,30 @@ void vTrafficLightInit(TrafficLight_t* trafficLight)
 	trafficLight->baseDelay = TIME_PERIOD; //1000ms -> 1s base delay
 	trafficLight->lightDelay = trafficLight->baseDelay;
 	trafficLight->init = true;
+	Timer___Init(&trafficLightTimer, 4000,TrafficCallback, "traffic lights");
+}
+
+void TrafficCallback(TimerHandle_t tlTimer){
+	if( xSemaphoreTake( xLightMutex, ( portTickType )10 ) == pdTRUE )
+	{
+		//changes the light state
+		switch (trafficLight.currentState)
+		{
+			case Red:
+				trafficLight.currentState = Green;
+				break;
+
+			case Yellow:
+				trafficLight.currentState = Red;
+				break;
+
+			case Green:
+				trafficLight.currentState = Yellow;
+				break;
+		}
+
+		xSemaphoreGive(xLightMutex);
+	}
 }
 
 /****NOMINAL OPERATION******
@@ -41,60 +66,55 @@ void vTrafficLightControlTask(void* pvParameters)
 
 	while(1)
 	{
+
 		Messenger_Pigeon___Receive (&g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1,(void*) &rxFlow);
+
 
 		// See if we can obtain the semaphore.  If the semaphore is not available wait 10 ticks to see if it becomes free.
 		if( xSemaphoreTake( xLightMutex, ( portTickType )10 ) == pdTRUE )
 		{
-
-			/*
-			If first time task is run the state should be in green
-			otherwise update currentState from previous time task ran
-			 */
-			if(trafficLight.init) trafficLight.init=false;
-				else trafficLight.currentState = trafficLight.nextState;
-
-
-			//sets task delays based on received load and current state
-			switch (trafficLight.currentState)
+			//checks to see if a change has light state has changed
+			if(trafficLight.currentState == trafficLight.nextState)
 			{
-			case Red:
-				//if heavy traffic have a short red (3s) other wise have a long red (5s)
-				trafficLight.nextState = Green;
-				trafficLight.lightDelay = 6*trafficLight.baseDelay - (int)(rxFlow*1000);
-				break;
 
-			case Yellow:
+				//sets task delays based on received load and current state
+				switch (trafficLight.currentState)
+				{
+					case Red:
+						//if heavy traffic have a short red (3s) other wise have a long red (5s)
+						trafficLight.nextState = Green;
+						trafficLight.lightDelay = 6*trafficLight.baseDelay - (int)(rxFlow*1000);
+						break;
 
-				trafficLight.nextState = Red;
-				trafficLight.lightDelay = (4*trafficLight.baseDelay);
+					case Yellow:
 
-				break;
+						trafficLight.nextState = Red;
+						trafficLight.lightDelay = 4*(trafficLight.baseDelay);
 
-			case Green:
-				//if heavy traffic have a long green (8s) other wise have a short green (4s)
-				trafficLight.nextState = Yellow;
-				trafficLight.lightDelay = 6*trafficLight.baseDelay + (int)(rxFlow*4*trafficLight.baseDelay);
-				break;
+						break;
 
-			default:
-				//should never reach here
-				printf("light state error, resetting to Green Light");
-				trafficLight.lightDelay = trafficLight.baseDelay;
-				trafficLight.init = true;
-				trafficLight.currentState = Green;
-				break;
+					case Green:
+						//if heavy traffic have a long green (8s) other wise have a short green (4s)
+						trafficLight.nextState = Yellow;
+						trafficLight.lightDelay = 6*trafficLight.baseDelay + (int)(rxFlow*4*trafficLight.baseDelay);
+						break;
+
+					default:
+						//should never reach here
+						printf("light state error, resetting to Green Light");
+						trafficLight.lightDelay = trafficLight.baseDelay;
+						trafficLight.init = true;
+						trafficLight.currentState = Green;
+						break;
+				}
+
+				//Start timer with calculated amount dependent on light and conditions
+				Timer___Change_Period_and_Restart(&trafficLightTimer,trafficLight.lightDelay);
 			}
 
 			xSemaphoreGive(xLightMutex);
 
-			//Delay by calculated amount dependent on light and conditions
-			vTaskDelay(trafficLight.lightDelay);
-		}
-		else
-		{
-			// We could not obtain the semaphore therefore delay by base amount
-			vTaskDelay(trafficLight.baseDelay);
+
 		}
 	}
 }
