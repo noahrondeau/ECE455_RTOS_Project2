@@ -13,7 +13,7 @@ typedef struct
 } Task;
 
 //------------------------------------ functions ------------------------------------------------------------------------------------------
-EXIT_STATUS Task___Init(Task* p___task, TaskFunction_t task_function, const char* const PZ___TASK_NAME, unsigned short stack_size, void* p___parameters, UBaseType_t priority);
+EXIT_STATUS Task___Init(Task* p___task, TaskFunction_t task_function, unsigned short stack_size, void* p___parameters, UBaseType_t priority);
 
 //------------------------------------ EOF ------------------------------------------------------------------------------------------------
 #endif

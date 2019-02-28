@@ -1,15 +1,9 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// Task 1: Traffic flow adjustment task
-//
-// - NOTE: Needs to be init'd before other tasks are run (easiest to just do before the task scheduler is started).
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 //==================================== interface ==========================================================================================
-//  EXIT_STATUS Task1___Init(ADC_TypeDef* which_ADC_using, uint32_t u32___ms_between_ADC_reads);
+//  EXIT_STATUS Task1___potentiometer_reader___Init(ADC_TypeDef* which_ADC_using, uint32_t u32___ms_between_ADC_reads);
 //=========================================================================================================================================
 
 //------------------------------------ include --------------------------------------------------------------------------------------------
-#include "Task1.h"
+#include "Task1___potentiometer_reader.h"
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -27,10 +21,8 @@ TickType_t    gx___ticks_between_ADC_reads;
 extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
 extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1;
 
-
-
 //------------------------------------ task -----------------------------------------------------------------------------------------------
-void Task1(void* p___parameters)
+void Task1___potentiometer_reader(void* p___parameters)
 {
 	EXIT_STATUS exit_status;
 	
@@ -74,14 +66,14 @@ void Task1(void* p___parameters)
 }
 
 //------------------------------------ functions ------------------------------------------------------------------------------------------
-EXIT_STATUS Task1___Init(ADC_TypeDef* which_ADC_using, uint32_t u32___ms_between_ADC_reads)
+EXIT_STATUS Task1___potentiometer_reader___Init(ADC_TypeDef* which_ADC_using, uint32_t u32___ms_between_ADC_reads)
 {
 	// Init globals.
 	g___which_ADC_using = which_ADC_using;
 	gx___ticks_between_ADC_reads = pdMS_TO_TICKS(u32___ms_between_ADC_reads);
 	
 	// Create the task.
-	EXIT_STATUS exit_status = Task___Init(NULL, Task1, "Task1", configMINIMAL_STACK_SIZE, NULL, 1);
+	EXIT_STATUS exit_status = Task___Init(NULL, Task1___potentiometer_reader, configMINIMAL_STACK_SIZE, NULL, 1);
 	if (exit_status != 0)
 	{
 		Error(FUNCTION_SIGNATURE, "Failed to create task1.\n");

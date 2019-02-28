@@ -137,8 +137,8 @@ functionality.
 #include "config.h" // includes all necessary headers, defines, etc
 #include "ADC.h"
 #include "ShiftReg.h"
-#include "Task1.h"
-#include "Task2.h"
+#include "Task1___potentiometer_reader.h"
+#include "Task2___traffic_creator.h"
 #include "DisplayTask.h"
 #include "TrafficLight.h"
 #include "Messenger_Pigeon.h"
@@ -203,8 +203,8 @@ void vInitializeGlobals( void )
 
 void vInitializeTasks( void )
 {
-	Task1___Init(ADC1, TIME_PERIOD); // ADC polling
-	Task2___Init(0.0,1.0,0.7); // Traffic Flow Creation
+	Task1___potentiometer_reader___Init(ADC1, TIME_PERIOD); // ADC polling
+	Task2___traffic_creator___Init(0.0, 1.2, 0.7); // Traffic Flow Creation
 	xTaskCreate( vTrafficLightControlTask, "TafficLightControlTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 }

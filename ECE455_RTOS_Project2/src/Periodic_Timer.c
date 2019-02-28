@@ -16,7 +16,7 @@
 //==================================== interface ==========================================================================================
 //  typedef struct  Periodic_Timer;
 //  
-//  EXIT_STATUS Periodic_Timer___Init          (Periodic_Timer* p___timer, uint32_t u32___period_ms       , TimerCallbackFunction_t p_func__callback, const char* const pz___timer_name)
+//  EXIT_STATUS Periodic_Timer___Init          (Periodic_Timer* p___timer, uint32_t u32___period_ms       , TimerCallbackFunction_t p_func__callback)
 //  EXIT_STATUS Periodic_Timer___Change_Period (Periodic_Timer* p___timer, TickType_t x___new_period_ticks);
 //=========================================================================================================================================
 
@@ -25,86 +25,121 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <stdio.h>
 #include "FreeRTOS.h"
 #include "timers.h"
 
-#include "config.h"
 #include "Error.h"
 #include "Mutex.h"
+#include "Event.h"
+#include "Task.h"
+
+#include "config.h"
 
 //------------------------------------ timer callback -------------------------------------------------------------------------------------
-void INTERNAL___Periodic_Timer___timer_callback_function(TimerHandle_t h___timer)
+void INTERNAL___Periodic_Timer___timer_callback(TimerHandle_t h___timer)
 {
 	// This timer has just been triggered. That's why we are here.
 	
 	// Get the pointer to this timer's struct (saved as TimerID, during the call to xTimerCreate()).
 	Periodic_Timer* p___timer = (Periodic_Timer*)pvTimerGetTimerID(h___timer);
 	
-	// Grab the mutex.
-	EXIT_STATUS exit_status = Mutex___WaitFor(&p___timer->mutex);
-	if (exit_status != 0)
-	{
-		Error(FUNCTION_SIGNATURE, "Failed to wait for the mutex.\n");
-	}
+	// Just trigger the event for this timer.
+	// The task for this timer will then be responsible for executing the actual callback.
+	// Done this way so that THIS callback never has the potential to block.
+	EXIT_STATUS exit_status = Event___Trigger(&p___timer->event);
+	if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to trigger timer's event.\n");
 	
-	// If the period for this timer needs changing, do that now.
-	if (p___timer->x___new_period___ticks != p___timer->x___current_period___ticks)
-	{
-		printf("We are changing the period\n");
-		// Change the timer period.
-		BaseType_t return_value = xTimerChangePeriod(h___timer, p___timer->x___new_period___ticks, portMAX_DELAY);
-		if (return_value == pdFAIL)
-		{
-			Error(FUNCTION_SIGNATURE, "Request to change timer's period was not successfully written to the timer command queue.\n");
-		}
-		if (return_value != pdPASS)
-		{
-			Error(FUNCTION_SIGNATURE, "Unknown failure: xTimerChangePeriod()\n");
-		}
-		
-		// Save the new period as current.
-		p___timer->x___current_period___ticks = p___timer->x___new_period___ticks;
-		printf("Callback timer period change, new current period: %u \n",(uint32_t)p___timer->x___current_period___ticks);
-	}
-	
-	// Release the mutex.
-	exit_status = Mutex___Release(&p___timer->mutex);
-	if (exit_status != 0)
-	{
-		Error(FUNCTION_SIGNATURE, "Failed to release the mutex.\n");
-	}
-	
-	// Now, proceed as normal to the timer's user-supplied callback function.
-	(*p___timer->p_func__callback)(h___timer);
-	printf("timer callback success\n");
 	// Done.
 }
 
-//------------------------------------ functions ------------------------------------------------------------------------------------------
-EXIT_STATUS Periodic_Timer___Init(Periodic_Timer* p___timer, uint32_t u32___period_ms, TimerCallbackFunction_t p_func__callback, const char* const pz___timer_name)
+//------------------------------------ task -----------------------------------------------------------------------------------------------
+void INTERNAL___Periodic_Timer___Task(void* p___parameters)
 {
-	// NULL parameter check.
-	if ((p___timer == NULL) || (p_func__callback == NULL) || (pz___timer_name == NULL))
+	EXIT_STATUS exit_status;
+	
+	// Get the pointer to this timer's struct.
+	Periodic_Timer* p___timer = (Periodic_Timer*)p___parameters;
+	
+	// Infinite loop.
+	bool b___auto_reset = true;
+	while (1)
 	{
-		Error(FUNCTION_SIGNATURE, "NULL parameter(s): p___timer = %X, p_func__callback = %X, pz___timer_name = %X\n", p___timer, p_func__callback, pz___timer_name);
+		// Wait for this timer's event to be triggered.
+		exit_status = Event___WaitFor(&p___timer->event, b___auto_reset);
+		if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to wait for this timer's event.");
+		
+		
+		// Grab the timer's mutex.
+		exit_status = Mutex___WaitFor(&p___timer->protect.mutex);
+		if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to wait for the timer's mutex.\n");
+		
+		// If the period for this timer needs changing, do that now.
+		if (p___timer->protect.x___new_period___ticks != p___timer->x___current_period___ticks)
+		{
+			// Change the timer period.
+			BaseType_t return_value = xTimerChangePeriod(p___timer->h___timer, p___timer->protect.x___new_period___ticks, portMAX_DELAY);
+			if (return_value == pdFAIL) Error(FUNCTION_SIGNATURE, "Request to change timer's period was not successfully written to the timer command queue.\n");
+			if (return_value != pdPASS) Error(FUNCTION_SIGNATURE, "Unknown failure: xTimerChangePeriod()\n");
+			
+			// Save the new period as current.
+			p___timer->x___current_period___ticks = p___timer->protect.x___new_period___ticks;
+		}
+		
+		// Release the timer's mutex.
+		exit_status = Mutex___Release(&p___timer->protect.mutex);
+		if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to release the timer's mutex.\n");
+		
+		
+		// Execute the actual timer callback.
+		// Executes within the context of this task.
+		(*p___timer->p_func__callback)(p___timer->h___timer);
+	}
+}
+
+//------------------------------------ functions ------------------------------------------------------------------------------------------
+EXIT_STATUS Periodic_Timer___Init(Periodic_Timer* p___timer, uint32_t u32___period_ms, TimerCallbackFunction_t p_func__callback)
+{
+	EXIT_STATUS exit_status;
+	
+	// NULL parameter check.
+	if ((p___timer == NULL) || (p_func__callback == NULL))
+	{
+		Error(FUNCTION_SIGNATURE, "NULL parameter(s): p___timer = %X, p_func__callback = %X\n", p___timer, p_func__callback);
 		return(EXIT_FAILURE);
 	}
 	
-	// Set values.
+	// Init struct.
 	p___timer->x___current_period___ticks = pdMS_TO_TICKS(u32___period_ms);
+	p___timer->protect.x___new_period___ticks = p___timer->x___current_period___ticks;
 	p___timer->p_func__callback = p_func__callback;
 	
-	// Init mutex.
-	EXIT_STATUS exit_status = Mutex___Init(&p___timer->mutex);
+	// Init timer's mutex.
+	exit_status = Mutex___Init(&p___timer->protect.mutex);
 	if (exit_status != 0)
 	{
-		Error(FUNCTION_SIGNATURE, "Failed to init the mutex.\n");
+		Error(FUNCTION_SIGNATURE, "Failed to init the timer's mutex.\n");
+		return(exit_status);
+	}
+	
+	// Init timer's event.
+	exit_status = Event___Init(&p___timer->event);
+	if (exit_status != 0)
+	{
+		Error(FUNCTION_SIGNATURE, "Failed to init this timer's event.\n");
+		return(exit_status);
+	}
+	
+	// Init timer's task.
+	exit_status = Task___Init(&p___timer->task___execute_callback_in_this_context, INTERNAL___Periodic_Timer___Task, configMINIMAL_STACK_SIZE, (void*)p___timer, 1);
+	if (exit_status != 0)
+	{
+		Error(FUNCTION_SIGNATURE, "Failed to init this timer's task.\n");
 		return(exit_status);
 	}
 	
 	// Create the software timer used.
-	TimerHandle_t return_value = xTimerCreate(pz___timer_name, p___timer->x___current_period___ticks, pdTRUE, (void*)p___timer, INTERNAL___Periodic_Timer___timer_callback_function);
+	UBaseType_t x___auto_reload = pdTRUE;
+	TimerHandle_t return_value = xTimerCreate("Periodic_Timer", p___timer->x___current_period___ticks, x___auto_reload, (void*)p___timer, INTERNAL___Periodic_Timer___timer_callback);
 	if (return_value == NULL)
 	{
 		Error(FUNCTION_SIGNATURE, "Insufficient heap memory to create software timer.\n");
@@ -112,10 +147,19 @@ EXIT_STATUS Periodic_Timer___Init(Periodic_Timer* p___timer, uint32_t u32___peri
 	}
 	p___timer->h___timer = return_value;
 
-	//Start Timer
-	BaseType_t temp = xTimerStart(p___timer->h___timer,portMAX_DELAY);
+	// Start the timer.
+	BaseType_t return_value2 = xTimerStart(p___timer->h___timer, portMAX_DELAY);
+	if (return_value2 == pdFAIL)
+	{
+		Error(FUNCTION_SIGNATURE, "Failed to start timer in time. Should NOT have happened, because we wait indefinitely for this to happen.\n");
+		return(EXIT_FAILURE);
+	}
+	if (return_value2 != pdPASS)
+	{
+		Error(FUNCTION_SIGNATURE, "Unknown failure: xTimerStart()\n");
+		return(EXIT_FAILURE);
+	}
 	
-	printf("Timer initialized\n");
 	// Done.
 	return(EXIT_SUCCESS);
 }
@@ -132,25 +176,24 @@ EXIT_STATUS Periodic_Timer___Change_Period(Periodic_Timer* p___timer, TickType_t
 	}
 	
 	// Grab the mutex.
-	exit_status = Mutex___WaitFor(&p___timer->mutex);
+	exit_status = Mutex___WaitFor(&p___timer->protect.mutex);
 	if (exit_status != 0)
 	{
-		Error(FUNCTION_SIGNATURE, "Failed to wait for the mutex.\n");
+		Error(FUNCTION_SIGNATURE, "Failed to wait for the timer's mutex.\n");
 		return(exit_status);
 	}
 	
 	// Set the value for the new period.
-	p___timer->x___new_period___ticks = x___new_period_ticks;
-	printf("New Period Timer Changed to: %u \n",(uint32_t)x___new_period_ticks);
+	p___timer->protect.x___new_period___ticks = x___new_period_ticks;
 	
 	// Release the mutex.
-	exit_status = Mutex___Release(&p___timer->mutex);
+	exit_status = Mutex___Release(&p___timer->protect.mutex);
 	if (exit_status != 0)
 	{
-		Error(FUNCTION_SIGNATURE, "Failed to release the mutex.\n");
+		Error(FUNCTION_SIGNATURE, "Failed to release the timer's mutex.\n");
 		return(exit_status);
 	}
-	 printf("Timer period change requested\n");
+	
 	// Done.
 	return(EXIT_SUCCESS);
 }

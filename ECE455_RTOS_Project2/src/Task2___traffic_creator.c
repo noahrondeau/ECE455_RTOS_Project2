@@ -1,9 +1,9 @@
 //==================================== interface ==========================================================================================
-//  EXIT_STATUS Task2___Init(float fp32___MIN_traffic_arrival_rate___cars_per_sec, float fp32___MAX_traffic_arrival_rate___cars_per_sec, float fp32___traffic_creation_threshold);
+//  EXIT_STATUS Task2___traffic_creator___Init(float fp32___MIN_traffic_arrival_rate___cars_per_sec, float fp32___MAX_traffic_arrival_rate___cars_per_sec, float fp32___traffic_creation_threshold);
 //=========================================================================================================================================
 
 //------------------------------------ include --------------------------------------------------------------------------------------------
-#include "Task2.h"
+#include "Task2___traffic_creator.h"
 
 #include <stdlib.h>
 #include <stdint.h>
@@ -24,12 +24,12 @@ TickType_t      gx___MAX_traffic_arrival_rate___period___ticks;
 float           g_fp32___traffic_creation_threshold;
 bool            g_b___pre_calculated___a_new_car;
 
-extern EventGroupHandle_t xEvent;
-extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
-extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1;
+extern EventGroupHandle_t  xEvent;
+extern Messenger_Pigeon    g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
+extern Messenger_Pigeon    g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1;
 
 //------------------------------------ timer callback -------------------------------------------------------------------------------------
-void Task2___timer_callback(TimerHandle_t h___timer)
+void Task2___traffic_creator___timer_callback(TimerHandle_t h___timer)
 {
 	printf("task2 timer call back top\n");
 	// This is triggered at the rate of traffic creation.
@@ -62,7 +62,7 @@ void Task2___timer_callback(TimerHandle_t h___timer)
 }
 
 //------------------------------------ task -----------------------------------------------------------------------------------------------
-void Task2(void* p___parameters)
+void Task2___traffic_creator(void* p___parameters)
 {
 	// Receives "traffic flow rate" values (between 0 and 1) from Task1.
 	
@@ -118,7 +118,7 @@ intern TickType_t HELPER___Frequency_to_Period____X_per_sec____ticks(float fp32_
 	return(x___period___ticks);
 }
 
-EXIT_STATUS Task2___Init(float fp32___MIN_traffic_arrival_rate___cars_per_sec, float fp32___MAX_traffic_arrival_rate___cars_per_sec, float fp32___traffic_creation_threshold)
+EXIT_STATUS Task2___traffic_creator___Init(float fp32___MIN_traffic_arrival_rate___cars_per_sec, float fp32___MAX_traffic_arrival_rate___cars_per_sec, float fp32___traffic_creation_threshold)
 {
 	EXIT_STATUS exit_status;
 	
@@ -146,7 +146,7 @@ EXIT_STATUS Task2___Init(float fp32___MIN_traffic_arrival_rate___cars_per_sec, f
 	
 	// Init the timer.
 	// May as well init the timer to the max "traffic arrival rate".
-	exit_status = Periodic_Timer___Init(&g_timer___task2, gx___MAX_traffic_arrival_rate___period___ticks, Task2___timer_callback, "Task 2 timer");
+	exit_status = Periodic_Timer___Init(&g_timer___task2, gx___MAX_traffic_arrival_rate___period___ticks, Task2___traffic_creator___timer_callback);
 	if (exit_status != 0)
 	{
 		Error(FUNCTION_SIGNATURE, "Failed to init task2's timer.\n");
@@ -154,7 +154,7 @@ EXIT_STATUS Task2___Init(float fp32___MIN_traffic_arrival_rate___cars_per_sec, f
 	}
 	
 	// Create the task.
-	exit_status = Task___Init(NULL, Task2, "Task2", configMINIMAL_STACK_SIZE, NULL, 1);
+	exit_status = Task___Init(NULL, Task2___traffic_creator, configMINIMAL_STACK_SIZE, NULL, 1);
 	if (exit_status != 0)
 	{
 		Error(FUNCTION_SIGNATURE, "Failed to create task2.\n");
