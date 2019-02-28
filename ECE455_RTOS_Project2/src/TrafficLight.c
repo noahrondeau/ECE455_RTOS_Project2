@@ -11,7 +11,7 @@
 #include "Messenger_Pigeon.h"
 
 extern TrafficLight_t trafficLight;
-extern Timer trafficLightTimer;
+extern OneShot_Timer trafficLightTimer;
 extern SemaphoreHandle_t xLightMutex;
 extern EventGroupHandle_t xEvent;
 extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
@@ -25,7 +25,7 @@ void vTrafficLightInit(TrafficLight_t* trafficLight)
 	trafficLight->baseDelay = TIME_PERIOD; //1000ms -> 1s base delay
 	trafficLight->lightDelay = trafficLight->baseDelay;
 	trafficLight->init = true;
-	Timer___Init(&trafficLightTimer, 4000,TrafficCallback, "traffic lights");
+	OneShot_Timer___Init(&trafficLightTimer, 4000,TrafficCallback);
 }
 
 void TrafficCallback(TimerHandle_t tlTimer){
@@ -109,7 +109,7 @@ void vTrafficLightControlTask(void* pvParameters)
 				}
 
 				//Start timer with calculated amount dependent on light and conditions
-				Timer___Change_Period_and_Restart(&trafficLightTimer,trafficLight.lightDelay);
+				OneShot_Timer___Change_Period_and_Restart(&trafficLightTimer,trafficLight.lightDelay);
 			}
 
 			xSemaphoreGive(xLightMutex);

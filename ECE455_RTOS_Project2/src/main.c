@@ -141,12 +141,13 @@ functionality.
 #include "Task2___traffic_creator.h"
 #include "DisplayTask.h"
 #include "TrafficLight.h"
+#include "OneShot_Timer.h"
 #include "Messenger_Pigeon.h"
 
 /* Global Variable Definitions */
 
 TrafficLight_t trafficLight;
-Timer trafficLightTimer;
+OneShot_Timer trafficLightTimer;
 SemaphoreHandle_t xLightMutex;
 EventGroupHandle_t xEvent;
 Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;

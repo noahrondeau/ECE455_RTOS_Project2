@@ -10,7 +10,7 @@
 
 //INCLUDES
 #include "config.h"
-#include "Timer.h"
+#include "OneShot_Timer.h"
 
 
 //Traffic Light Variables
