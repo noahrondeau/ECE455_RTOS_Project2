@@ -82,7 +82,7 @@ EXIT_STATUS OneShot_Timer___Init(OneShot_Timer* p___timer, uint32_t u32___period
 	}
 	
 	// Init timer's task.
-	exit_status = Task___Init(&p___timer->task___execute_callback_in_this_context, INTERNAL___OneShot_Timer___Task, configMINIMAL_STACK_SIZE, (void*)p___timer, 1);
+	exit_status = Task___Init(&p___timer->task___execute_callback_in_this_context, INTERNAL___OneShot_Timer___Task, configMINIMAL_STACK_SIZE, (void*)p___timer, 2);
 	if (exit_status != 0)
 	{
 		Error(FUNCTION_SIGNATURE, "Failed to init this timer's task.\n");

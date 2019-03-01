@@ -206,7 +206,7 @@ void vInitializeGlobals( void )
 void vInitializeTasks( void )
 {
 	Task1___potentiometer_reader___Init(ADC1, TIME_PERIOD); // ADC polling
-	Task2___traffic_creator___Init(0.0, 1.2, 0.7); // Traffic Flow Creation
+	Task2___traffic_creator___Init(0.0, 5.0, 0.7); // Traffic Flow Creation
 	xTaskCreate( vTrafficLightControlTask, "TafficLightControlTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 }
