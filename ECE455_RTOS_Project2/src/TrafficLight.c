@@ -83,7 +83,7 @@ void vTrafficLightControlTask(void* pvParameters)
 					case Red:
 						//if heavy traffic have a short red (3s) other wise have a long red (5s)
 						trafficLight.nextState = Green;
-						trafficLight.lightDelay = 6*trafficLight.baseDelay - (int)(rxFlow*1000);
+						trafficLight.lightDelay = 10*trafficLight.baseDelay - (int)(round(rxFlow*4.0*(float)(trafficLight.baseDelay)));
 						break;
 
 					case Yellow:
@@ -96,7 +96,7 @@ void vTrafficLightControlTask(void* pvParameters)
 					case Green:
 						//if heavy traffic have a long green (8s) other wise have a short green (4s)
 						trafficLight.nextState = Yellow;
-						trafficLight.lightDelay = 6*trafficLight.baseDelay + (int)(rxFlow*4*trafficLight.baseDelay);
+						trafficLight.lightDelay = 10*trafficLight.baseDelay + (int)(rxFlow*4.0*(float)(trafficLight.baseDelay));
 						break;
 
 					default:
