@@ -3,6 +3,7 @@
 //=========================================================================================================================================
 
 //------------------------------------ include --------------------------------------------------------------------------------------------
+#include <MessageChannel.h>
 #include "Task1___potentiometer_reader.h"
 
 #include <stdint.h>
@@ -12,14 +13,13 @@
 
 #include "Task.h"
 #include "ADC.h"
-#include "Messenger_Pigeon.h"
 
 //------------------------------------ globals --------------------------------------------------------------------------------------------
 ADC_TypeDef*  g___which_ADC_using;
 TickType_t    gx___ticks_between_ADC_reads;
 
-extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
-extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1;
+extern MessageChannel  g___message_channel___flow_rate_1_2;
+extern MessageChannel  g___message_channel___flow_rate_1_3;
 
 //------------------------------------ task -----------------------------------------------------------------------------------------------
 void Task1___potentiometer_reader(void* p___parameters)
@@ -53,10 +53,10 @@ void Task1___potentiometer_reader(void* p___parameters)
 		// Send out this traffic flow rate value to everyone who needs it (via messenger pigeon).
 		p = (void*)&fp32___traffic_flow_rate___between_0_and_1;
 		
-		exit_status = Messenger_Pigeon___Send(&g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1, p);
+		exit_status = MessageChannel___Send(&g___message_channel___flow_rate_1_2, p);
 		if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to send messenger pigeon FROM task1 TO task2.\n");
 		
-		exit_status = Messenger_Pigeon___Send(&g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1, p);
+		exit_status = MessageChannel___Send(&g___message_channel___flow_rate_1_3, p);
 		if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to send messenger pigeon FROM task1 TO task3.\n");
 		
 		// Wait before doing next ADC read.

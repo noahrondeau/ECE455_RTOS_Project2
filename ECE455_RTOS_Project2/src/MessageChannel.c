@@ -16,8 +16,7 @@
 //=========================================================================================================================================
 
 //------------------------------------ include --------------------------------------------------------------------------------------------
-#include "Messenger_Pigeon.h"
-
+#include <MessageChannel.h>
 #include <stdlib.h>
 #include "FreeRTOS.h"
 #include "queue.h"
@@ -25,10 +24,10 @@
 #include "Error.h"
 
 //------------------------------------ functions ------------------------------------------------------------------------------------------
-EXIT_STATUS Messenger_Pigeon___Create(Messenger_Pigeon* p___messenger_pigeon, size_t message_size)
+EXIT_STATUS MessageChannel___Create(MessageChannel* p___messageChannel, size_t message_size)
 {
 	// NULL parameter check.
-	if (p___messenger_pigeon == NULL)
+	if (p___messageChannel == NULL)
 	{
 		Error(FUNCTION_SIGNATURE, "NULL parameter\n");
 		return(EXIT_FAILURE);
@@ -43,23 +42,23 @@ EXIT_STATUS Messenger_Pigeon___Create(Messenger_Pigeon* p___messenger_pigeon, si
 	}
 	
 	// Save value into the struct.
-	p___messenger_pigeon->h___queue = return_value;
+	p___messageChannel->h___queue = return_value;
 	
 	// Done.
 	return(EXIT_SUCCESS);
 }
 
-EXIT_STATUS Messenger_Pigeon___Send(Messenger_Pigeon* p___messenger_pigeon, const void* const P___MSG)
+EXIT_STATUS MessageChannel___Send(MessageChannel* p___messageChannel, const void* const P___MSG)
 {
 	// NULL parameter check.
-	if ((p___messenger_pigeon == NULL) || (P___MSG == NULL))
+	if ((p___messageChannel == NULL) || (P___MSG == NULL))
 	{
-		Error(FUNCTION_SIGNATURE, "NULL parameter(s): p___messenger_pigeon = %X, P___MSG = %X\n", p___messenger_pigeon, P___MSG);
+		Error(FUNCTION_SIGNATURE, "NULL parameter(s): p___messenger_pigeon = %X, P___MSG = %X\n", p___messageChannel, P___MSG);
 		return(EXIT_FAILURE);
 	}
 	
 	// Send the messenger pigeon!
-	BaseType_t return_value = xQueueOverwrite(p___messenger_pigeon->h___queue, P___MSG);
+	BaseType_t return_value = xQueueOverwrite(p___messageChannel->h___queue, P___MSG);
 	if (return_value != pdPASS)
 	{
 		Error(FUNCTION_SIGNATURE, "Unknown failure: xQueueOverwrite()\n");
@@ -70,17 +69,17 @@ EXIT_STATUS Messenger_Pigeon___Send(Messenger_Pigeon* p___messenger_pigeon, cons
 	return(EXIT_SUCCESS);
 }
 
-EXIT_STATUS Messenger_Pigeon___Receive(Messenger_Pigeon* p___messenger_pigeon, void* const p___msg)
+EXIT_STATUS MessageChannel___Receive(MessageChannel* p___messageChannel, void* const p___msg)
 {
 	// NULL parameter check.
-	if ((p___messenger_pigeon == NULL) || (p___msg == NULL))
+	if ((p___messageChannel == NULL) || (p___msg == NULL))
 	{
-		Error(FUNCTION_SIGNATURE, "NULL parameter(s): p___messenger_pigeon = %X, p___msg = %X\n", p___messenger_pigeon, p___msg);
+		Error(FUNCTION_SIGNATURE, "NULL parameter(s): p___messenger_pigeon = %X, p___msg = %X\n", p___messageChannel, p___msg);
 		return(EXIT_FAILURE);
 	}
 	
 	// Receive a message via messenger pigeon!
-	BaseType_t return_value = xQueueReceive(p___messenger_pigeon->h___queue, p___msg, portMAX_DELAY);
+	BaseType_t return_value = xQueueReceive(p___messageChannel->h___queue, p___msg, portMAX_DELAY);
 	if (return_value == errQUEUE_EMPTY)
 	{
 		Error(FUNCTION_SIGNATURE, "Failed to receive from the queue. Was empty. This should NOT happen as I should have blocked until there was something.\n");

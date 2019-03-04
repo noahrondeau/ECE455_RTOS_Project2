@@ -134,6 +134,7 @@ These two hook functions are provided as examples, but do not contain any
 functionality.
 */
 
+#include <MessageChannel.h>
 #include "config.h" // includes all necessary headers, defines, etc
 #include "ADC.h"
 #include "ShiftReg.h"
@@ -142,7 +143,6 @@ functionality.
 #include "DisplayTask.h"
 #include "TrafficLight.h"
 #include "OneShot_Timer.h"
-#include "Messenger_Pigeon.h"
 
 /* Global Variable Definitions */
 
@@ -150,8 +150,8 @@ TrafficLight_t trafficLight;
 OneShot_Timer trafficLightTimer;
 SemaphoreHandle_t xLightMutex;
 EventGroupHandle_t xEvent;
-Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
-Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1;
+MessageChannel  g___message_channel___flow_rate_1_2;
+MessageChannel  g___message_channel___flow_rate_1_3;
 
 /* Local Function Definitions */
 static void prvSetupHardware( void );
@@ -190,13 +190,13 @@ void vInitializeGlobals( void )
 	xEvent = xEventGroupCreate();
 
 	EXIT_STATUS exit_status;
-	exit_status = Messenger_Pigeon___Create(&g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1, sizeof(float));
+	exit_status = MessageChannel___Create(&g___message_channel___flow_rate_1_2, sizeof(float));
 	if (exit_status != 0)
 	{
 		Error(FUNCTION_SIGNATURE, "Failed to init pigeon FROM task1 TO task2.\n");
 	}
 
-	exit_status = Messenger_Pigeon___Create(&g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1, sizeof(float));
+	exit_status = MessageChannel___Create(&g___message_channel___flow_rate_1_3, sizeof(float));
 	if (exit_status != 0)
 	{
 		Error(FUNCTION_SIGNATURE, "Failed to init pigeon FROM task1 TO task3.\n");

@@ -1,5 +1,5 @@
-#ifndef Messenger_Pigeon_h
-#define Messenger_Pigeon_h
+#ifndef MessageChannel_h
+#define MessageChannel_h
 
 //------------------------------------ include --------------------------------------------------------------------------------------------
 #include "FreeRTOS.h"
@@ -11,12 +11,12 @@
 typedef struct
 {
 	QueueHandle_t  h___queue;
-} Messenger_Pigeon;
+} MessageChannel;
 
 //------------------------------------ functions ------------------------------------------------------------------------------------------
-EXIT_STATUS Messenger_Pigeon___Create  (Messenger_Pigeon* p___messenger_pigeon, size_t message_size);
-EXIT_STATUS Messenger_Pigeon___Send    (Messenger_Pigeon* p___messenger_pigeon, const void* const P___MSG);
-EXIT_STATUS Messenger_Pigeon___Receive (Messenger_Pigeon* p___messenger_pigeon, void* const p___msg);
+EXIT_STATUS MessageChannel___Create  (MessageChannel* p___messageChannel, size_t message_size);
+EXIT_STATUS MessageChannel___Send    (MessageChannel* p___messageChannel, const void* const P___MSG);
+EXIT_STATUS MessageChannel___Receive (MessageChannel* p___messageChannel, void* const p___msg);
 
 //------------------------------------ EOF ------------------------------------------------------------------------------------------------
 #endif

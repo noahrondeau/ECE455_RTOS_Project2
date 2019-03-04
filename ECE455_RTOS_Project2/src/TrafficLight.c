@@ -7,15 +7,15 @@
 
 /*****INCLUDES*******/
 
+#include <MessageChannel.h>
 #include "TrafficLight.h"
-#include "Messenger_Pigeon.h"
 
 extern TrafficLight_t trafficLight;
 extern OneShot_Timer trafficLightTimer;
 extern SemaphoreHandle_t xLightMutex;
 extern EventGroupHandle_t xEvent;
-extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
-extern Messenger_Pigeon  g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1;
+extern MessageChannel  g___message_channel___flow_rate_1_2;
+extern MessageChannel  g___message_channel___flow_rate_1_3;
 
 /*****FUNCTIONS******/
 void vTrafficLightInit(TrafficLight_t* trafficLight)
@@ -67,7 +67,7 @@ void vTrafficLightControlTask(void* pvParameters)
 	while(1)
 	{
 
-		Messenger_Pigeon___Receive (&g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1,(void*) &rxFlow);
+		MessageChannel___Receive (&g___message_channel___flow_rate_1_3,(void*) &rxFlow);
 
 
 		// See if we can obtain the semaphore.  If the semaphore is not available wait 10 ticks to see if it becomes free.

@@ -3,6 +3,7 @@
 //=========================================================================================================================================
 
 //------------------------------------ include --------------------------------------------------------------------------------------------
+#include <MessageChannel.h>
 #include "Task2___traffic_creator.h"
 
 #include <stdlib.h>
@@ -11,7 +12,6 @@
 #include "event_groups.h"
 
 #include "Task.h"
-#include "Messenger_Pigeon.h"
 #include "Periodic_Timer.h"
 #include "RNG.h"
 
@@ -25,8 +25,8 @@ float           g_fp32___traffic_creation_threshold;
 bool            g_b___pre_calculated___a_new_car;
 
 extern EventGroupHandle_t  xEvent;
-extern Messenger_Pigeon    g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1;
-extern Messenger_Pigeon    g___messenger_pigeon___FROM_task1_TO_task3___fp32___traffic_flow_rate___between_0_and_1;
+extern MessageChannel    g___message_channel___flow_rate_1_2;
+extern MessageChannel    g___message_channel___flow_rate_1_3;
 
 //------------------------------------ timer callback -------------------------------------------------------------------------------------
 void Task2___traffic_creator___timer_callback(TimerHandle_t h___timer)
@@ -81,7 +81,7 @@ void Task2___traffic_creator(void* p___parameters)
 	while (1)
 	{
 		// Wait to receive a traffic flow rate value from task1, via messenger pigeon.
-		exit_status = Messenger_Pigeon___Receive(&g___messenger_pigeon___FROM_task1_TO_task2___fp32___traffic_flow_rate___between_0_and_1, P);
+		exit_status = MessageChannel___Receive(&g___message_channel___flow_rate_1_2, P);
 		if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to receive messenger pigeon from task1.\n");
 		
 		// Based on the received "traffic flow rate", determine and set task2's timer.
