@@ -10,6 +10,10 @@
 
 #include "config.h"
 
+/* This file defines the interface of the shift register
+ * All pin definitions are located in config.h
+ */
+
 void ShiftReg_Init(void);
 
 void ShiftReg_Clear(void);

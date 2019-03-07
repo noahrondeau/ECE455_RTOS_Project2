@@ -67,73 +67,22 @@
     1 tab == 4 spaces!
 */
 
-/*
-FreeRTOS is a market leading RTOS from Real Time Engineers Ltd. that supports
-31 architectures and receives 77500 downloads a year. It is professionally
-developed, strictly quality controlled, robust, supported, and free to use in
-commercial products without any requirement to expose your proprietary source
-code.
 
-This simple FreeRTOS demo does not make use of any IO ports, so will execute on
-any Cortex-M3 of Cortex-M4 hardware.  Look for TODO markers in the code for
-locations that may require tailoring to, for example, include a manufacturer
-specific header file.
+/* ECE 455 Lab Project 2
+ * Authors:
+ * 		Noah Rondeau
+ * 		Matthew Wegener
+ * 		Geoff Hale
+ * Completed 2019-03-07
+ *
+ * This project implements a simple simulation of a traffic
+ * light on a one way street. Traffic Flow is adjusted by reading a potentiometer.
+ * The traffic light duration is dynamically adjusted for traffic flow.
+ * The system state is displayed every second by lighting LEDs hooked up to a
+ * shift register.
+ */
 
-This is a starter project, so only a subset of the RTOS features are
-demonstrated.  Ample source comments are provided, along with web links to
-relevant pages on the http://www.FreeRTOS.org site.
-
-Here is a description of the project's functionality:
-
-The main() Function:
-main() creates the tasks and software timers described in this section, before
-starting the scheduler.
-
-The Queue Send Task:
-The queue send task is implemented by the prvQueueSendTask() function.
-The task uses the FreeRTOS vTaskDelayUntil() and xQueueSend() API functions to
-periodically send the number 100 on a queue.  The period is set to 200ms.  See
-the comments in the function for more details.
-http://www.freertos.org/vtaskdelayuntil.html
-http://www.freertos.org/a00117.html
-
-The Queue Receive Task:
-The queue receive task is implemented by the prvQueueReceiveTask() function.
-The task uses the FreeRTOS xQueueReceive() API function to receive values from
-a queue.  The values received are those sent by the queue send task.  The queue
-receive task increments the ulCountOfItemsReceivedOnQueue variable each time it
-receives the value 100.  Therefore, as values are sent to the queue every 200ms,
-the value of ulCountOfItemsReceivedOnQueue will increase by 5 every second.
-http://www.freertos.org/a00118.html
-
-An example software timer:
-A software timer is created with an auto reloading period of 1000ms.  The
-timer's callback function increments the ulCountOfTimerCallbackExecutions
-variable each time it is called.  Therefore the value of
-ulCountOfTimerCallbackExecutions will count seconds.
-http://www.freertos.org/RTOS-software-timer.html
-
-The FreeRTOS RTOS tick hook (or callback) function:
-The tick hook function executes in the context of the FreeRTOS tick interrupt.
-The function 'gives' a semaphore every 500th time it executes.  The semaphore
-is used to synchronise with the event semaphore task, which is described next.
-
-The event semaphore task:
-The event semaphore task uses the FreeRTOS xSemaphoreTake() API function to
-wait for the semaphore that is given by the RTOS tick hook function.  The task
-increments the ulCountOfReceivedSemaphores variable each time the semaphore is
-received.  As the semaphore is given every 500ms (assuming a tick frequency of
-1KHz), the value of ulCountOfReceivedSemaphores will increase by 2 each second.
-
-The idle hook (or callback) function:
-The idle hook function queries the amount of free FreeRTOS heap space available.
-See vApplicationIdleHook().
-
-The malloc failed and stack overflow hook (or callback) functions:
-These two hook functions are provided as examples, but do not contain any
-functionality.
-*/
-
+/* Includes */
 #include <MessageChannel.h>
 #include "config.h" // includes all necessary headers, defines, etc
 #include "ADC.h"
@@ -146,27 +95,35 @@ functionality.
 
 /* Global Variable Definitions */
 
-TrafficLight_t trafficLight;
-OneShot_Timer trafficLightTimer;
-SemaphoreHandle_t xLightMutex;
-EventGroupHandle_t xEvent;
+TrafficLight_t trafficLight; // represents the global traffic light
+OneShot_Timer trafficLightTimer; // timer used for the traffic light
+SemaphoreHandle_t xLightMutex; // mutex to protect traffic light access
+EventGroupHandle_t xEvent; // event group for signalling cars
+
+// queues for traffic flow communication
+// MessageChannel is a wrapper around a queue which handles
+// the logic of queue access
 MessageChannel  g___message_channel___flow_rate_1_2;
 MessageChannel  g___message_channel___flow_rate_1_3;
 
 /* Local Function Definitions */
 static void prvSetupHardware( void );
+// initialization functions
 void vInitializeHardware( void );
 void vInitializeGlobals( void );
 void vInitializeTasks( void );
 
 
-/*-----------------------------------------------------------*/
+/*---------------------  MAIN FUNCTION ----------------------*/
 
 int main(void)
 {
+	// Initialize all elements of system
 	vInitializeHardware();
 	vInitializeGlobals();
 	vInitializeTasks();
+
+	// start the scheduler and spin forever
 	vTaskStartScheduler();
 	return 0;
 }
@@ -174,39 +131,49 @@ int main(void)
 
 /*-----------------------------------------------------------*/
 
+// Initializes the hardware and low-level drivers
 void vInitializeHardware( void )
 {
 	// Initialize necessary GPIO and ADC pins
 	ShiftReg_Init();
 	MyADC_Init();
+	// Init the random number generator
 	RNG___Init();
 	prvSetupHardware();
 }
 
+// Initializes the global variables with their heap-allocated FreeRTOS objects
 void vInitializeGlobals( void )
 {
 	vTrafficLightInit(&trafficLight);
 	xLightMutex = xSemaphoreCreateMutex();
 	xEvent = xEventGroupCreate();
 
+	// Initialize queues, but check for errors
 	EXIT_STATUS exit_status;
 	exit_status = MessageChannel___Create(&g___message_channel___flow_rate_1_2, sizeof(float));
 	if (exit_status != 0)
 	{
+		// see error.h
 		Error(FUNCTION_SIGNATURE, "Failed to init message channel FROM task1 TO task2.\n");
 	}
 
 	exit_status = MessageChannel___Create(&g___message_channel___flow_rate_1_3, sizeof(float));
 	if (exit_status != 0)
 	{
+		//see error.h
 		Error(FUNCTION_SIGNATURE, "Failed to init message channel FROM task1 TO task3.\n");
 	}
 }
 
+// Initialize all the necessary tasks
 void vInitializeTasks( void )
 {
+	// these two functions wrap some logic that needs to be done before creating these tasks
 	Task1___potentiometer_reader___Init(ADC1, TIME_PERIOD); // ADC polling
 	Task2___traffic_creator___Init(0.0, 5.0, 0.7); // Traffic Flow Creation
+
+	// These are fairly straightforward raw tasks
 	xTaskCreate( vTrafficLightControlTask, "TafficLightControlTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 	xTaskCreate( vDisplayTask, "DisplayTask", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
 }

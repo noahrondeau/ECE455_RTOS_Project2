@@ -5,6 +5,12 @@
  *      Author: ntron
  */
 
+/* ExPLANATION:
+ * This file includes anything that must be shared across
+ * the whole system. Includes, definitions, configurations
+ * i.e. Pin definitions, timing definitions, etc
+ */
+
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
