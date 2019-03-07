@@ -85,6 +85,9 @@ void Task2___traffic_creator(void* p___parameters)
 		
 		// Based on the received "traffic flow rate", determine and set task2's timer.
 		// Calculated as a value between (as per the normalized amount) the specified max and min periods.
+		// The normalized part is actually reversed here (i.e. 1-x instead of x) because:
+		// - the low value of potentiometer corresponds to the MAX period
+		// - the high value of potentiometer corresponds to the MIN period
 		fp32___temp = (1 - fp32___traffic_flow_rate___between_0_and_1) * fp32___delta;
 		x___temp = fp32___temp;
 		x___new_period___ticks = x___MIN_period___ticks + x___temp;
