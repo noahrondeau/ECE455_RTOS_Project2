@@ -26,8 +26,6 @@ void Task1___potentiometer_reader(void* p___parameters)
 {
 	EXIT_STATUS exit_status;
 	
-	//printf("Start Task 1\n");
-
 	static float fp32___bottom = (float)ADC_VALUE_MAX;
 	float fp32___top;
 	float fp32___traffic_flow_rate___between_0_and_1;
@@ -37,30 +35,24 @@ void Task1___potentiometer_reader(void* p___parameters)
 	
 	while(1)
 	{
-		//printf("Task 1 Loop Start\n");
 		// Read in a value from the ADC.
 		u16___adc_value = ADC___Read(g___which_ADC_using);
 		
-		//printf("ADC Value Unsigned from Task 1: %d\n", u16___adc_value);
-
 		// Convert the value to a float between 0-1 (others will use this).
 		fp32___top = (float)u16___adc_value;
 		fp32___traffic_flow_rate___between_0_and_1 = fp32___top / fp32___bottom;
 		if (fp32___traffic_flow_rate___between_0_and_1 > 1.0) fp32___traffic_flow_rate___between_0_and_1 = 1.0;
 		
-		//printf("ADC normalized float from Task 1: %f", fp32___traffic_flow_rate___between_0_and_1);
-
 		// Send out this traffic flow rate value to everyone who needs it (via messenger pigeon).
 		p = (void*)&fp32___traffic_flow_rate___between_0_and_1;
 		
 		exit_status = MessageChannel___Send(&g___message_channel___flow_rate_1_2, p);
-		if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to send messenger pigeon FROM task1 TO task2.\n");
+		if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to send message FROM task1 TO task2.\n");
 		
 		exit_status = MessageChannel___Send(&g___message_channel___flow_rate_1_3, p);
-		if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to send messenger pigeon FROM task1 TO task3.\n");
+		if (exit_status != 0) Error(FUNCTION_SIGNATURE, "Failed to send message FROM task1 TO task3.\n");
 		
 		// Wait before doing next ADC read.
-		//printf("Task 1 loop end\n");
 		vTaskDelay(gx___ticks_between_ADC_reads);
 	}
 }

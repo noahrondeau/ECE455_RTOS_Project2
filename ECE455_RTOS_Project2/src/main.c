@@ -193,13 +193,13 @@ void vInitializeGlobals( void )
 	exit_status = MessageChannel___Create(&g___message_channel___flow_rate_1_2, sizeof(float));
 	if (exit_status != 0)
 	{
-		Error(FUNCTION_SIGNATURE, "Failed to init pigeon FROM task1 TO task2.\n");
+		Error(FUNCTION_SIGNATURE, "Failed to init message channel FROM task1 TO task2.\n");
 	}
 
 	exit_status = MessageChannel___Create(&g___message_channel___flow_rate_1_3, sizeof(float));
 	if (exit_status != 0)
 	{
-		Error(FUNCTION_SIGNATURE, "Failed to init pigeon FROM task1 TO task3.\n");
+		Error(FUNCTION_SIGNATURE, "Failed to init message channel FROM task1 TO task3.\n");
 	}
 }
 
